@@ -1,0 +1,40 @@
+```{r concnt, cache=cacheon}
+
+cat <- rsdata %>%
+  filter(scream_nttest == "Yes") %>%
+  group_by(whfe) %>%
+  count(scream_ntprobnp_cat) %>%
+  mutate(
+    per = fn(n / sum(n) * 100, 1),
+    ds = paste0(n, " (", per, "%)")
+  ) %>%
+  ungroup() %>%
+  rename("NT-proBNP" = scream_ntprobnp_cat) %>%
+  select(whfe, "NT-proBNP", ds)
+
+kont <- rsdata %>%
+  filter(scream_nttest == "Yes") %>%
+  group_by(whfe) %>%
+  summarise(
+    med = fn(median(scream_ntprobnp), dig = 1),
+    q1 = fn(quantile(scream_ntprobnp, probs = 0.25), dig = 1),
+    q3 = fn(quantile(scream_ntprobnp, probs = 0.75), dig = 1),
+    min = fn(min(scream_ntprobnp), dig = 0),
+    max = fn(max(scream_ntprobnp), dig = 0)
+  ) %>%
+  mutate(ds = paste0(med, " (", min, ", ", q1, ", ", q3, ", ", max, ")")) %>%
+  ungroup() %>%
+  mutate("NT-proBNP" = "Median (min, q1, q3, max)") %>%
+  select(whfe, "NT-proBNP", ds)
+
+both <- bind_rows(cat, kont)
+
+both <- both %>%
+  pivot_wider(names_from = whfe, values_from = ds)
+
+default_kable(both,
+  scale_down = F,
+  caption = "NT-proBNP concentrations at index (+/- 2 weeks)",
+  escape = TRUE
+)
+```

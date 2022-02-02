@@ -1,0 +1,70 @@
+```{r whfent, cache=cacheon}
+
+out <- data.frame(matrix(NA, ncol = 5, 3))
+
+colnames(out) <- c("Model", levels(rsdata$scream_ntprobnpstableprior))
+
+# ds
+
+## no and %
+out[1, 1] <- "n (%)"
+
+npdata <- rsdata %>%
+  filter(!is.na(scream_ntprobnpstableprior)) %>%
+  group_by(scream_ntprobnpstableprior) %>%
+  count(whfe) %>%
+  mutate(np = paste0(n, " (", fn(n / sum(n) * 100, 1), "%)")) %>%
+  ungroup() %>%
+  filter(whfe == "WHFE")
+
+out[1, 2:5] <- npdata$np
+
+# crude
+out[2, 1] <- "Crude OR (95% CI), p-value"
+
+moduni <- glm(whfe == "WHFE" ~ scream_ntprobnpstableprior,
+  data = rsdata %>% filter(!is.na(scream_ntprobnpstableprior)),
+  family = binomial(link = "logit")
+)
+
+moduni <- summary(moduni)
+
+out[2, 2:5] <- c("ref", paste0(
+  fn(exp(moduni$coefficients[2:4, "Estimate"]), 2),
+  " (",
+  fn(exp(moduni$coefficients[2:4, "Estimate"] - global_z05 * moduni$coefficients[2:4, "Std. Error"]), 2),
+  "-",
+  fn(exp(moduni$coefficients[2:4, "Estimate"] + global_z05 * moduni$coefficients[2:4, "Std. Error"]), 2),
+  ", ",
+  fn(moduni$coefficients[2:4, "Pr(>|z|)"], 3, p = T)
+))
+
+# mult
+
+out[3, 1] <- "Adjusted OR (95% CI), p-value"
+
+modmult <- with(imprsdata, glm(formula(paste0("whfe == 'WHFE' ~ scream_ntprobnpstableprior + ", paste(modvars, collapse = " + "))),
+  family = binomial(link = "logit")
+))
+modmult <- summary(pool(modmult))
+
+
+out[3, 2:5] <- c("ref", paste0(
+  fn(exp(modmult$estimate[2:4]), 2),
+  " (",
+  fn(exp(modmult$estimate[2:4] - global_z05 * modmult$std.error[2:4]), 2),
+  "-",
+  fn(exp(modmult$estimate[2:4] + global_z05 * modmult$std.error[2:4]), 2),
+  ", ",
+  fn(modmult$p.value[2:4], 3, p = T)
+))
+
+
+write.xlsx(out, paste0("./output/tabs/whfe_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+
+default_kable(out,
+  font_size = 6,
+  caption = "Association between change in NT-proBNP (prior to index) and WHFE",
+  escape = TRUE
+)
+```

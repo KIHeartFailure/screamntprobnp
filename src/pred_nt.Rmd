@@ -1,0 +1,61 @@
+```{r pred, cache=cacheon}
+
+# mult
+
+ormod <- with(imprsdata, glm(formula(paste0("scream_nttest == 'Yes' ~ ", paste(modvars, collapse = " + "))),
+  family = binomial(link = "logit")
+))
+
+sormod <- summary(pool(ormod))
+
+nval <- length(sormod$term)
+preds <- bind_cols(
+  Variable = as.character(sormod$term[2:nval]),
+  logor = sormod$estimate[2:nval],
+  lci = sormod$estimate[2:nval] - global_z05 * sormod$std.error[2:nval],
+  uci = sormod$estimate[2:nval] + global_z05 * sormod$std.error[2:nval],
+  p = fn(sormod$p.value[2:nval], dig = 3, p = TRUE)
+) %>%
+  mutate(orci = paste0(fn(exp(logor), 2), " (", fn(exp(lci), 2), "-", fn(exp(uci), 2), ")")) %>%
+  select(Variable, orci, p)
+
+# crude
+for (i in seq_along(modvars)) {
+  ormoduni <- with(imprsdata, glm(formula(paste0("scream_nttest == 'Yes' ~ ", modvars[i])),
+    family = binomial(link = "logit")
+  ))
+
+  sormoduni <- summary(pool(ormoduni))
+
+  nval <- length(sormoduni$term)
+  predsunitmp <- bind_cols(
+    Variable = as.character(sormoduni$term[2:nval]),
+    logor = sormoduni$estimate[2:nval],
+    lci = sormoduni$estimate[2:nval] - global_z05 * sormoduni$std.error[2:nval],
+    uci = sormoduni$estimate[2:nval] + global_z05 * sormoduni$std.error[2:nval],
+    p = fn(sormoduni$p.value[2:nval], dig = 3, p = TRUE)
+  ) %>%
+    mutate(orci = paste0(fn(exp(logor), 2), " (", fn(exp(lci), 2), "-", fn(exp(uci), 2), ")")) %>%
+    select(Variable, orci, p)
+
+  if (i == 1) {
+    predsuni <<- predsunitmp
+  } else {
+    predsuni <<- bind_rows(predsuni, predsunitmp)
+  }
+}
+
+predall <- full_join(predsuni, preds, by = "Variable")
+colnames(predall) <- c("Variable", rep(c("OR (95% CI)", "p-value"), 2))
+
+
+write.xlsx(predall, paste0("./output/tabs/preds_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+
+default_kable(predall,
+  font_size = 6,
+  caption = "Predictors of NT-proBNP testing",
+  longtable = TRUE,
+  escape = TRUE
+) %>%
+  add_header_above(c(" " = 1, "Crude" = 2, "Adjusted" = 2))
+```

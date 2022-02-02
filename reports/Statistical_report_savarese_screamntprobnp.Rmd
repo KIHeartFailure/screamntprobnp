@@ -1,0 +1,277 @@
+---
+title: 'Statistical report: N-terminal pro-B-type natriuretic peptide (NT-proBNP) in patients with heart failure, with a focus on worsening heart failure, in Sweden'
+subtitle: 'DRAFT'
+author: 'Statistician: Lina Benson'
+  
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_height: 7
+    fig_width: 7
+    number_sections: yes
+link-citations: yes
+bibliography: references.bib
+nocite: '@*'
+urlcolor: blue
+linkcolor: black
+header-includes:
+   - \usepackage{draftwatermark}
+---
+
+\newpage 
+\tableofcontents 
+\listoftables
+\listoffigures
+\newpage
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, include = TRUE, comment = "",
+  warning = FALSE, message = FALSE, fig.pos = "H",
+  fig.path = "../output/figs/"
+)
+options(knitr.kable.NA = "")
+```
+
+```{r adjust_directory_if_needed, include=FALSE}
+# Uncomment lines below if rmd file is placed in a subdirectory
+knitr::opts_knit$set(root.dir = normalizePath("../"))
+```
+
+```{r load_project}
+# 1. Set options in config/global.dcf
+# 2. Load packages listed in config/global.dcf
+# 3. Import functions and code in lib directory
+
+ProjectTemplate::reload.project()
+
+cacheon <- TRUE
+```             
+
+# Data handling
+
+## Data source
+
+SCREAM2
+
+## Inclusion/exclusion criteria
+
+```{r flow}
+default_kable(flow, caption = "Flowchart")
+```
+
+Note that patients who died in hospital are included in the analysis. Index date is defined as date of visit/discharge.  
+
+First patient in: `r min(rsdata$shf_indexdtm)` and last patient in: `r max(rsdata$shf_indexdtm)`. 
+
+The median age (IQR) is `r rsdata %>% summarise(med = fn(median(shf_age), dig = 1),
+                                             q1 = fn(quantile(shf_age, probs = 0.25), dig = 1),
+                                             q3 = fn(quantile(shf_age, probs = 0.75), dig = 1)) %>%
+                                   mutate(out = paste0(med, " (", q1, "-", q3, ")")) %>%
+                                   pull(out)` and 
+`r rsdata %>% count(shf_sex) %>%
+  mutate(perc = fn(n / sum(n) * 100, 1)) %>%
+  filter(shf_sex == "Female") %>%
+  pull(perc)`% females.    
+
+## Created variables 
+
+The labvalues from SCREAM are selected within +/- 14 days from index in SwedeHF, 
+where the one closest to index is chosen. If there are two tests of the same lab 
+from the same date the mean is calculated. So the labvalues could in fact be after index (but calculated the same as for NT-proBNP index value). Change? Need to think about intepretation in change analysis.  
+
+```{r npr}
+default_kable(cometa, caption = "Comorbidities and outcomes from VAL/KON")
+```
+
+```{r cci}
+default_kable(ccimeta, caption = "Charlson Comorbidity index from VAL/KON")
+```
+
+Charlson Comorbidity index is calculated according to [@cci]. 
+
+\newpage
+
+# Statistical analysis 
+
+## General
+
+All analyses were performed using `r sessionInfo()$R.version$version.string` [@r]. 
+The level of significance is set to 5%, two-sided. No adjustment for multiple 
+comparisons were made and therefore the results should be viewed with some care.
+
+## Missing data
+
+Missing data was imputed with multiple imputation (n = 10) using mice [@mice]. 
+Variables included in the model are indicated in 
+Table \ref{tab:tab1}. 
+
+## Baseline characteristics
+
+Should be by something else than WHFE?
+
+```{r, child = "./src/tab1.Rmd"}
+
+```
+
+\clearpage
+
+## Objective 1-2
+
+Should anything be by EF (only rEF)???? Need to discuss this for all analyses (not only obj 1-2) based on numbers!
+
+The first bullet under the objective: Proportions of unique patients who had NT-proBNP testing at the index date  +/- 2 weeks (closest to index date) will be selected. So should remaining info be for only pats w ntprobnp at index? Seems no good (will overestimate testing). 
+
+\clearpage
+
+### Trend of NT-proBNP testing after the index date
+
+Patients are included in the denominator if their index date is prior to 1 Jan of the respective year and are alive and at risk on 31 Dec of the respective year (could have 1 July as date instead and gain more pats and also include "intial testing phase", however, if there is an initial testing phase will prob be biased so more testing in earlier years due to cumulate inclusion (still maybe biased). Only NT-proBNP testing AFTER index is considered. 
+
+```{r, child = "./src/trend_nt.Rmd"}
+
+```
+
+\clearpage
+
+### Frequencies and percentages of patients undergoing NT-proBNP within 30, 60 and 90 days before and after the index date 
+
+Only patients at risk during the respective time periods are included in the analyses. 
+Note that a patient (with 90 days follow-up) with one NT-proBNP testing at for example 25 days will be included in the numerator for all 3 post index periods. 
+
+```{r, child = "./src/freq306090_nt.Rmd"}
+
+```
+
+\clearpage
+
+### Number of days from the index date to the first post-diagnosis NT-proBNP test 
+
+The number of days to NT-proBNP testing from day after index are presented in a Kaplan-Meier curve. 
+Patients are censored at 2018-12-31 or death or move from Stockholm county. 
+
+```{r, child = "./src/noday_nt.Rmd"}
+
+```
+
+\clearpage
+
+### Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient 
+
+```{r, child = "./src/no612_nt.Rmd"}
+
+```
+
+### Number of NT-proBNP testing in the inpatient, outpatient, and other settings per patient 
+
+What is this??? Over what time period (as previous??)? But they will no longer be in-pats when tested in 6 mo...
+
+Setting in/out patient. There are 4 groups (should pats that are hosp for other reason than HF still be counted as in-patient? might be odd since they are not per defintion whfe). Question applies throughout.
+
+## Objective 3-4
+
+### NT-proBNP concentration and distribution
+
+```{r, child = "./src/conc_nt.Rmd"}
+
+```
+
+### Pattern of change 
+
+For 6 mo pre and post index I made restriction that 6 mo +/- 3 mo (otherwise could technically be index measure). OK? 
+
+Should I add the following restriction (now not done): For the post index analyses the patients need to be alive and at risk at 6 mo after index to be included (necessary? per definition they will need to be alive 3 mo after index)???
+
+Should cut at 5000? see median values below.
+
+For objective 4c (we will also assess the change in NT-proBNP from pre-WHFE to post-WHFE for patients with WHFE and having NT-proBNP tested both at least 3 days before and after the WHFE. The mean (SD) and median of the change in NT-proBNP (post-WHFE – pre-WHFE) will be presented (Spaghetti plot to be verified if feasible).). Within what time limits? within 3 mo prior to 3 days prior compared to 1 day after to 3 mo after?
+
+### We will also conduct the analyses by stratifying patients by estimated glomerular filtration rate (eGFR; <=30, >30 to <60, >=60 mL/min/ 1.73 m2) as well as having atrial fibrillation (yes/no), inpatients vs. outpatients.
+
+```{r, child = "./src/change_nt.Rmd"}
+
+```
+
+## Objective 5:
+### Association between stable low, increased group, decreased group, and stable high with WHFE at index
+
+Since the index measurment can be AFTER WHFE is this a problem? 
+
+Only patients with measurments on NT-proBNP before and at index are included (no imputation performed for NT-proBNP). 
+
+The association between change in NT-proBNP and WHFE is analysed using logistic regression models, 
+partly crude including only change in NT-proBNP in the model 
+and partly adjusted for variables indicated in Table \ref{tab:tab1}. The variables were selected based on clinical relevance.  
+
+Made adjustment to adjustment variables stated in protocol. OK?
+
+```{r, child = "./src/whfe_nt.Rmd"}
+
+```
+
+### Association between stable low, increased group, decreased group, and stable high with risk of all-cause and CV deaths  
+
+For what group? Only WHFE?
+
+Only patients with measurments on NT-proBNP before and at index are included. 
+
+The following outcomes are considered: 
+
+- CV mortality
+- All-cause mortality
+
+Data were censored at 2018-12-31 or death/move from Stockholm county. 
+
+Time to first events were presented with Kaplan-Meier curves and Cox proportional hazards regressions were 
+used to model the time to first event, partly crude including only change in NT-proBNP in the model 
+and partly adjusted for variables indicated in 
+Table \ref{tab:tab1}. The variables were selected based on clinical relevance. 
+
+As a consistency analysis, CV mortality, 
+was modelled using a sub-distributional hazards model [@fg] where death was treated as a 
+competing event. Should I do?? (not done now)
+
+Made adjustment to adjustment variables stated in protocol. OK?
+
+Is stated should do outcomes at 30 days and 1 year. But to have value on change in ntprobnp group need follow-up of at least 3 mo (to have post index value) so 30 d not possible (since per defintion no outcome in this time period). Did 1 and 3 years. Will be some bias due to only pats alive included. 
+
+```{r, child = "./src/km.Rmd"}
+
+```
+
+```{r, child = "./src/out_nt.Rmd"}
+
+```
+
+\clearpage
+
+## Objective 6
+
+Not sure I understand the objective 6: "Receipt of NT-proBNP testing as dependent variable will be defined as whether patients received an NT-proBNP testing at the index date +/2 weeks, i.e. NT-proBNP testing yes" so did preditors...
+
+I added a few and removed a few adjustment variables (some not possible, for example dur of HF). Some I will need icd codes for (asthma for example). should follow exactly?
+
+```{r, child = "./src/pred_nt.Rmd"}
+
+```
+
+\clearpage
+
+# Reproducibility
+
+## R session information {#sessioninfo}
+
+```{r sessinfo}
+sessionInfo()
+```
+
+## R code
+
+The R code for all data handling and statistical analyses are found: 
+https://github.com/KIHeartFailure/screamntprobnp. On publication
+the repository will be made public so as to 
+link to it from the resulting article for increased transparency and code sharing.
+No data or output is stored in the repository. 
+
+# References

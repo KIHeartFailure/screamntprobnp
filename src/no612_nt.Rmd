@@ -1,0 +1,64 @@
+```{r no612nt, cache=cacheon}
+
+
+tmplab <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
+  labnt,
+  by = "LopNr"
+) %>%
+  mutate(
+    tmptiment = as.numeric(labdtm - shf_indexdtm),
+    nt = 1
+  ) %>%
+  filter(tmptiment >= 0 & tmptiment <= 365)
+
+trendfunc <- function(timestop, timename) {
+  tmplab2 <- tmplab %>%
+    filter(tmptiment <= timestop) %>%
+    group_by(LopNr) %>%
+    count() %>%
+    ungroup() %>%
+    select(LopNr, n)
+
+  tmplab2 <- left_join(rsdata,
+    tmplab2,
+    by = "LopNr"
+  ) %>%
+    filter(
+      sos_outtime_death >= timestop
+    ) %>%
+    mutate(n = replace_na(n, 0))
+
+  tmplab2 <- tmplab2 %>%
+    group_by(whfe) %>%
+    summarise(
+      med = fn(median(n), dig = 1),
+      q1 = fn(quantile(n, probs = 0.25), dig = 1),
+      q3 = fn(quantile(n, probs = 0.75), dig = 1),
+      mean = fn(mean(n), dig = 1),
+      sd = fn(sd(n), dig = 1)
+    ) %>%
+    mutate(
+      outmed = paste0(med, " (", q1, "-", q3, ")"),
+      outmean = paste0(mean, " (", sd, ")")
+    ) %>%
+    mutate("Time point" = timename) %>%
+    ungroup()
+}
+trend <- trendfunc(timestop = 365 / 2, "Within 6 mo post index")
+trend <- rbind(trend, trendfunc(365, "Within 1 year post index"))
+trend <- rbind(trend, trendfunc(timestop = 365 * 2, "Within 2 years post index"))
+
+trend <- trend %>%
+  select(whfe, `Time point`, outmed, outmean) %>%
+  pivot_wider(names_from = whfe, values_from = c(outmed, outmean)) %>%
+  select(`Time point`, outmed_WHFE, outmean_WHFE, outmed_NWHFE, outmean_NWHFE)
+
+colnames(trend) <- c("Time point", rep(c("Median (qi-q3)", "Mean (sd)"), 2))
+
+default_kable(trend,
+  scale_down = F,
+  caption = "NT-proBNP testing per patient within 6 mo, 1 year and 2 years after the index date",
+  escape = TRUE
+) %>%
+  add_header_above(c(" " = 1, "WHFE" = 2, "NWHFE" = 2))
+```

@@ -1,0 +1,57 @@
+```{r freq306090nt, cache=cacheon}
+
+tmplab <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
+  labnt,
+  by = "LopNr"
+) %>%
+  mutate(
+    tmptiment = as.numeric(labdtm - shf_indexdtm),
+    nt = 1
+  ) %>%
+  filter(tmptiment >= -90 & tmptiment <= 90)
+
+trendfunc <- function(timestart, timestop, timename) {
+  tmplab2 <- tmplab %>%
+    filter(tmptiment >= timestart & tmptiment <= timestop) %>%
+    group_by(LopNr) %>%
+    slice(1) %>%
+    ungroup() %>%
+    select(LopNr, nt)
+
+  tmplab2 <- left_join(rsdata,
+    tmplab2,
+    by = "LopNr"
+  ) %>%
+    filter(
+      sos_outtime_death >= timestop
+    ) %>%
+    mutate(nt = replace_na(nt, 0))
+
+  tmplab2 <- tmplab2 %>%
+    group_by(whfe) %>%
+    count(nt) %>%
+    mutate(
+      per = paste0(fn(n / sum(n) * 100, 1), "%"),
+      ntot = paste0(n, "/", sum(n), " (", per, ")"),
+      "Time point" = timename
+    ) %>%
+    ungroup() %>%
+    filter(nt == 1)
+}
+trend <- trendfunc(-90, -1, "90-1 days prior to index")
+trend <- rbind(trend, trendfunc(-60, -1, "60-1 days prior to index"))
+trend <- rbind(trend, trendfunc(-30, -1, "30-1 days prior to index"))
+trend <- rbind(trend, trendfunc(0, 30, "0-30 days post index"))
+trend <- rbind(trend, trendfunc(0, 60, "0-60 days post index"))
+trend <- rbind(trend, trendfunc(0, 90, "0-90 days post index"))
+
+trend <- trend %>%
+  select(whfe, `Time point`, ntot) %>%
+  pivot_wider(names_from = whfe, values_from = ntot)
+
+default_kable(trend,
+  scale_down = F,
+  caption = "NT-proBNP testing within 30, 60 and 90 days before and after the index date",
+  escape = TRUE
+)
+```

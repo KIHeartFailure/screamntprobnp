@@ -1,0 +1,99 @@
+```{r changeprior, cache=cacheon}
+
+summary(rsdata$scream_ntprobnp)
+summary(rsdata$scream_ntprobnp6moprior)
+summary(rsdata$scream_ntprobnp6mopost)
+
+tab <- print(CreateTableOne(
+  vars = c("sos_location2", "shf_sos_com_af", "scream_gfrckdepi_cat"),
+  data = rsdata,
+  strata = c("scream_ntprobnpstableprior", "whfe")
+),
+missing = FALSE, printToggle = FALSE, nonnormal = tabvars,
+catDigits = 1, contDigits = 1,
+noSpaces = TRUE,
+explain = FALSE,
+test = FALSE
+)
+
+tab <- as_tibble(cbind(Variable = rownames(tab), tab))
+
+colnames(tab) <- c("Variable", rep(levels(rsdata$scream_ntprobnpstableprior), 2))
+
+default_kable(tab,
+  caption = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks)",
+  escape = TRUE
+) %>%
+  add_header_above(c(" " = 1, "WHFE" = 4, "NWHFE" = 4))
+```
+
+```{r changepost, cache=cacheon}
+
+tab <- print(CreateTableOne(
+  vars = c("sos_location2", "shf_sos_com_af", "scream_gfrckdepi_cat"),
+  data = rsdata,
+  strata = c("scream_ntprobnpstablepost", "whfe")
+),
+missing = FALSE, printToggle = FALSE, nonnormal = tabvars,
+catDigits = 1, contDigits = 1,
+noSpaces = TRUE,
+explain = FALSE,
+test = FALSE
+)
+
+tab <- as_tibble(cbind(Variable = rownames(tab), tab))
+
+colnames(tab) <- c("Variable", rep(levels(rsdata$scream_ntprobnpstablepost), 2))
+
+default_kable(tab,
+  caption = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo)",
+  escape = TRUE
+) %>%
+  add_header_above(c(" " = 1, "WHFE" = 4, "NWHFE" = 4))
+```
+
+```{r changent, cache=cacheon}
+
+tab <- rsdata %>%
+  filter(whfe == "WHFE") %>%
+  mutate(ntdiff = scream_ntprobnp3mopost - scream_ntprobnp3moprior) %>%
+  summarise(
+    n = n(),
+    med = fn(median(ntdiff, na.rm = T), dig = 1),
+    q1 = fn(quantile(ntdiff, probs = 0.25, na.rm = T), dig = 1),
+    q3 = fn(quantile(ntdiff, probs = 0.75, na.rm = T), dig = 1),
+    mean = fn(mean(ntdiff, na.rm = T), dig = 1),
+    sd = fn(sd(ntdiff, na.rm = T), dig = 1)
+  ) %>%
+  mutate(
+    outmed = paste0(med, " (", q1, "-", q3, ")"),
+    outmean = paste0(mean, " (", sd, ")")
+  ) %>%
+  select(n, outmed, outmean)
+
+colnames(tab) <- c("n", "Median (q1-q3)", "Mean (sd)")
+
+default_kable(tab,
+  caption = "Change in NT-proBNP from prior (3 months to 3 days prior to index) to post (1 day to 3 months post index) WHFE",
+  escape = TRUE,
+  scale_down = FALSE
+)
+```
+
+```{r changentplot, cache=cacheon, fig.cap = "Spagettiplot maybe not...???"}
+
+plotdata <- rsdata %>%
+  filter(whfe == "WHFE" & !is.na(scream_ntprobnp3mopost) & !is.na(scream_ntprobnp3moprior)) %>%
+  mutate(
+    first = 1,
+    second = 2
+  )
+
+plot(1, 1, type = "n", ylim = c(0, 50000), xlim = c(1, 2), xlab = "", ylab = "NT-proBNP", axes = F)
+for (i in 1:nrow(plotdata)) {
+  lines(c(1, 2), c(plotdata$scream_ntprobnp3moprior[i], plotdata$scream_ntprobnp3mopost[i]))
+}
+axis(2)
+axis(1, at = c(1, 2), labels = c("Prior WHFE", "Post WHFE"))
+box(bty = "l")
+```

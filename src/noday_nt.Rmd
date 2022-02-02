@@ -1,0 +1,83 @@
+```{r nodaynt, cache=cacheon, fig.cap="Time to first NT-proBNP testing", fig.width=8, fig.height=7}
+
+
+tmp <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
+  labnt,
+  by = "LopNr"
+) %>%
+  mutate(tmptiment = as.numeric(labdtm - shf_indexdtm)) %>%
+  filter(tmptiment > 0) %>%
+  group_by(LopNr) %>%
+  arrange(tmptiment) %>%
+  slice(1) %>%
+  ungroup() %>%
+  select(LopNr, labdtm, tmptiment)
+
+tmp <- left_join(rsdata,
+  tmp,
+  by = "LopNr"
+) %>%
+  mutate(
+    timent = pmin(tmptiment, sos_outtime_death, na.rm = T),
+    nt = factor(if_else(timent == tmptiment & !is.na(tmptiment), 1, 0), levels = 0:1, labels = c("No", "Yes")),
+  )
+
+cexmy <- 1.2
+fit <- survfit(Surv(timent, nt == "Yes") ~ whfe,
+  data = tmp
+)
+# c(bottom, left, top, right)
+par(mar = c(7, 6, 0.5, 3) + 0.1)
+plots <- plot(fit,
+  fun = "event",
+  ylab = "First NT-proBNP testing",
+  xscale = 365,
+  yscale = 100,
+  col = global_kicols,
+  mark.time = FALSE,
+  bty = "n",
+  xlim = c(0, 366),
+  ylim = c(0, 1),
+  xlab = "Months",
+  cex.lab = cexmy,
+  axes = F,
+  lwd = 3,
+  lty = c(1, 2, 3, 4),
+  xaxs = "i", yaxs = "i",
+  conf.int = F
+)
+
+axis(2, seq(0, 1, 0.25), seq(0, 100, 25), las = 2, cex.axis = cexmy)
+axis(1, at = seq(0, 6, 1) * 30.5 * 2, seq(0, 12, 2), cex.axis = cexmy)
+
+ypos <- 1 - summary(fit, 366)$surv
+
+ylabs <- bind_cols(
+  ypos = c(ypos + c(0, 0)),
+  ytext = levels(rsdata %>% pull(whfe))
+)
+
+mtext(
+  side = 4,
+  line = .2,
+  at = ylabs$ypos,
+  ylabs$ytext,
+  las = 1,
+  cex = cexmy,
+)
+
+mtext("No. at risk", side = 1, line = 3, at = -67, adj = 0, cex = cexmy, font = 2)
+mtext("WHFE", side = 1, line = 5, at = -67, adj = 0, cex = cexmy)
+mtext("NWHFE", side = 1, line = 6, at = -67, adj = 0, cex = cexmy)
+
+nrisk <- summary(fit, seq(0, 6, 1) * 30.5 * 2, extend = T)
+
+axis(1, at = seq(0, 6, 1) * 30.5 * 2, labels = nrisk$n.risk[nrisk$strata == "whfe=WHFE"], line = 4, tick = FALSE, cex.axis = cexmy)
+axis(1, at = seq(0, 6, 1) * 30.5 * 2, labels = nrisk$n.risk[nrisk$strata == "whfe=NWHFE"], line = 5, tick = FALSE, cex.axis = cexmy)
+
+sfit <- summary(fit)$table
+pfit <- paste0(sfit[1, 7], " (", sfit[1, 8], "-", sfit[1, 9], ") days")
+text(8 * 30.5, 0.25, "Median days (95% CI)")
+text(8 * 30.5, 0.2, paste0("WHFE: ", sfit[1, 7], " (", sfit[1, 8], "-", sfit[1, 9], ")"))
+text(8 * 30.5, 0.15, paste0("NWHFE: ", sfit[2, 7], " (", sfit[2, 8], "-", sfit[2, 9], ")"))
+```
