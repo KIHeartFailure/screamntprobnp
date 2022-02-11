@@ -57,8 +57,7 @@ tab1func <- function(data, stratavar, tabname) {
       footnote2 = if_else(str_detect(var, "sos_"), footnote_marker_symbol(2), ""),
       footnote3 = if_else(str_detect(var, "^scb_"), footnote_marker_symbol(3), ""),
       footnote4 = if_else(var_tmp %in% modvars, footnote_marker_symbol(4), ""),
-      footnote5 = if_else(str_detect(var, "^shf_rasarni"), footnote_marker_symbol(5), ""),
-      footnote6 = if_else(str_detect(var, "^scb_dispincome_cat"), footnote_marker_symbol(6), "")
+      footnote5 = if_else(str_detect(var, "^scb_dispincome_cat"), footnote_marker_symbol(5), "")
     ) %>%
     unite(footnote, starts_with("footnote"), sep = "") %>%
     mutate(
@@ -93,7 +92,6 @@ tab1func <- function(data, stratavar, tabname) {
       "Source: KON/VAL",
       "Source: SCB",
       "Included in the multiple imputation model (althought not necessarily imputed if there is no missing data) and logistic/cox models.",
-      "arb/acei/arni",
       "Medium within index year"
     )
   )
@@ -118,4 +116,8 @@ tab1func(rsdata %>% filter(shf_ef_cat == "HFpEF"), "whfe", "by WHFE - HFpEF")
 
 ```{r tab1wbnp, cache=cacheon, dependson="tab1func"}
 tab1func(rsdata %>% filter(!is.na(scream_ntprobnp)), "whfe", "by WHFE - Patients with NT-proBNP at index")
+```
+
+```{r tab1wbnpref, cache=cacheon, dependson="tab1func"}
+tab1func(rsdata %>% filter(!is.na(scream_ntprobnp) & shf_ef_cat == "HFrEF"), "whfe", "by WHFE - HFrEF - Patients with NT-proBNP at index")
 ```

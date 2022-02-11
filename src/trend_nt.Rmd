@@ -1,4 +1,4 @@
-```{r trendnt, cache=cacheon, fig.cap="Trend over time of NT-proBNP testing", fig.width=8, fig.height=7}
+```{r trendntfunc, cache=cacheon}
 
 tmplab <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
   labnt,
@@ -15,8 +15,8 @@ tmplab <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
   ungroup() %>%
   select(LopNr, labyear, nt)
 
-trendfunc <- function(year) {
-  tmpyear <- left_join(rsdata,
+trendfunc <- function(year, data) {
+  tmpyear <- left_join(data,
     tmplab %>% filter(labyear == year),
     by = "LopNr"
   ) %>%
@@ -37,63 +37,74 @@ trendfunc <- function(year) {
     ungroup() %>%
     filter(nt == 1)
 }
-trend <- trendfunc(2011)
-trend <- rbind(trend, trendfunc(2012))
-trend <- rbind(trend, trendfunc(2013))
-trend <- rbind(trend, trendfunc(2014))
-trend <- rbind(trend, trendfunc(2015))
-trend <- rbind(trend, trendfunc(2016))
-trend <- rbind(trend, trendfunc(2017))
-trend <- rbind(trend, trendfunc(2018))
+
+trendfunc2 <- function(data2) {
+  trend <- trendfunc(2011, data2)
+  trend <- rbind(trend, trendfunc(2012, data2))
+  trend <- rbind(trend, trendfunc(2013, data2))
+  trend <- rbind(trend, trendfunc(2014, data2))
+  trend <- rbind(trend, trendfunc(2015, data2))
+  trend <- rbind(trend, trendfunc(2016, data2))
+  trend <- rbind(trend, trendfunc(2017, data2))
+  trend <- rbind(trend, trendfunc(2018, data2))
 
 
-cexmy <- 1.2
-# c(bottom, left, top, right) default c(5, 4, 4, 2) + 0.1.
-par(mar = c(4, 4, .5, 2.5) + 0.1)
+  cexmy <- 1.2
+  # c(bottom, left, top, right) default c(5, 4, 4, 2) + 0.1.
+  par(mar = c(4, 4, .5, 2.5) + 0.1)
 
-plot(trend$year[trend$whfe == "WHFE"], trend$per[trend$whfe == "WHFE"],
-  type = "b",
-  # type = "l",
-  pch = 19,
-  lty = 1,
-  col = global_kicols[1],
-  # lty = unique(riket$ltymy),
-  lwd = 3,
-  # cex = 1.5,
-  axes = FALSE,
-  xaxs = "i",
-  yaxs = "i",
-  ylim = c(40, 60),
-  xlim = c(2012 - 0.5, 2018 + 0.5),
-  ylab = "Percent",
-  xlab = "Calender year",
-  cex.lab = cexmy
-)
+  plot(trend$year[trend$whfe == "WHFE"], trend$per[trend$whfe == "WHFE"],
+    type = "b",
+    # type = "l",
+    pch = 19,
+    lty = 1,
+    col = global_colsblue[3],
+    # lty = unique(riket$ltymy),
+    lwd = 3,
+    # cex = 1.5,
+    axes = FALSE,
+    xaxs = "i",
+    yaxs = "i",
+    ylim = c(40, 60),
+    xlim = c(2012 - 0.5, 2018 + 0.5),
+    ylab = "Percent",
+    xlab = "Calender year",
+    cex.lab = cexmy
+  )
 
-matplot(trend$year[trend$whfe == "NWHFE"],
-  trend$per[trend$whfe == "NWHFE"],
-  type = "b",
-  # type = "l",
-  pch = 19,
-  lty = 2,
-  col = global_kicols[2],
-  lwd = 3,
-  add = T
-)
+  matplot(trend$year[trend$whfe == "NWHFE"],
+    trend$per[trend$whfe == "NWHFE"],
+    type = "b",
+    # type = "l",
+    pch = 19,
+    lty = 2,
+    col = global_colsblue[6],
+    lwd = 3,
+    add = T
+  )
 
-box(bty = "l")
-axis(1, cex.axis = cexmy)
-axis(2, seq(40, 60, 5), las = 2, cex.axis = cexmy)
+  box(bty = "l")
+  axis(1, cex.axis = cexmy)
+  axis(2, seq(40, 60, 5), las = 2, cex.axis = cexmy)
 
-mtext(
-  side = 4,
-  line = -1,
-  at = c(trend %>% filter(year == 2018) %>% pull(per)),
-  levels(rsdata %>% pull(whfe)),
-  las = 1,
-  cex = cexmy,
-)
+  mtext(
+    side = 4,
+    line = -1,
+    at = c(trend %>% filter(year == 2018) %>% pull(per)),
+    levels(rsdata %>% pull(whfe)),
+    las = 1,
+    cex = cexmy,
+  )
 
-text(trend$year[trend$whfe == "WHFE"], trend$per[trend$whfe == "WHFE"] + 1.5, trend$ntot[trend$whfe == "WHFE"], cex = cexmy)
-text(trend$year[trend$whfe == "NWHFE"], trend$per[trend$whfe == "NWHFE"] - 1.5, trend$ntot[trend$whfe == "NWHFE"], cex = cexmy)
+  text(trend$year[trend$whfe == "WHFE"], trend$per[trend$whfe == "WHFE"] + 1.5, trend$ntot[trend$whfe == "WHFE"], cex = cexmy)
+  text(trend$year[trend$whfe == "NWHFE"], trend$per[trend$whfe == "NWHFE"] - 1.5, trend$ntot[trend$whfe == "NWHFE"], cex = cexmy)
+}
+```
+
+```{r trendnt, cache=cacheon, dependson="trendntfunc", fig.cap="Trend over time of NT-proBNP testing - Overall", fig.width=8, fig.height=7}
+trendfunc2(data2 = rsdata)
+```
+
+```{r trendntref, cache=cacheon, dependson="trendntfunc", fig.cap="Trend over time of NT-proBNP testing - HFrEF", fig.width=8, fig.height=7}
+trendfunc2(data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"))
 ```

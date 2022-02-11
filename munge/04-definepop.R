@@ -22,12 +22,12 @@ rsdata <- rsdata %>%
 flow <- rbind(flow, c("Exclude posts < 18 years", nrow(rsdata)))
 
 rsdata <- rsdata %>%
-  filter(shf_indexdtm >= ymd("2011-01-01"))
-flow <- rbind(flow, c("Exclude posts with with index date < 2011-01-01", nrow(rsdata)))
+  filter(shf_indexdtm >= ymd("2011-01-15"))
+flow <- rbind(flow, c("Exclude posts with with index date < 2011-01-15", nrow(rsdata)))
 
 rsdata <- rsdata %>%
-  filter(shf_indexdtm <= ymd("2018-12-31"))
-flow <- rbind(flow, c("Exclude posts with with index date > 2018-12-31", nrow(rsdata)))
+  filter(shf_indexdtm <= ymd("2018-12-17"))
+flow <- rbind(flow, c("Exclude posts with with index date > 2018-12-17", nrow(rsdata)))
 
 hf6m <- patreg %>%
   mutate(hf = str_detect(DIA_all, " I110| I130| I132| I255| I420| I423| I425| I426| I427| I428| I429| I43| I50| J81| K761| R57")) %>%
@@ -78,7 +78,7 @@ rsdata <- rsdata %>%
   slice(1) %>%
   ungroup()
 
-flow <- rbind(flow, c("First post / patient (in protocol said last, took first, OK?)", nrow(rsdata)))
+flow <- rbind(flow, c("First post / patient", nrow(rsdata)))
 
 # WHEF defined from VAL/KON -----------------------------------------------
 

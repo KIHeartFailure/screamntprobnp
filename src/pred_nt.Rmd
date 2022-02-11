@@ -1,61 +1,99 @@
 ```{r pred, cache=cacheon}
 
-# mult
+predfunc <- function(impdata, tabname, nomultvar = NULL, nounivar = NULL) {
+  if (is.null(nounivar)) tmpmodvars <- modvars
+  if (!is.null(nounivar)) tmpmodvars <- modvars[!(modvars %in% nounivar)]
 
-ormod <- with(imprsdata, glm(formula(paste0("scream_nttest == 'Yes' ~ ", paste(modvars, collapse = " + "))),
-  family = binomial(link = "logit")
-))
+  if (is.null(nomultvar)) multvars <- tmpmodvars
+  if (!is.null(nomultvar)) multvars <- tmpmodvars[!(tmpmodvars %in% nomultvar)]
 
-sormod <- summary(pool(ormod))
+  # mult
 
-nval <- length(sormod$term)
-preds <- bind_cols(
-  Variable = as.character(sormod$term[2:nval]),
-  logor = sormod$estimate[2:nval],
-  lci = sormod$estimate[2:nval] - global_z05 * sormod$std.error[2:nval],
-  uci = sormod$estimate[2:nval] + global_z05 * sormod$std.error[2:nval],
-  p = fn(sormod$p.value[2:nval], dig = 3, p = TRUE)
-) %>%
-  mutate(orci = paste0(fn(exp(logor), 2), " (", fn(exp(lci), 2), "-", fn(exp(uci), 2), ")")) %>%
-  select(Variable, orci, p)
-
-# crude
-for (i in seq_along(modvars)) {
-  ormoduni <- with(imprsdata, glm(formula(paste0("scream_nttest == 'Yes' ~ ", modvars[i])),
+  ormod <- with(impdata, glm(formula(paste0("scream_nttest == 'Yes' ~ ", paste(multvars, collapse = " + "))),
     family = binomial(link = "logit")
   ))
 
-  sormoduni <- summary(pool(ormoduni))
+  sormod <- summary(pool(ormod))
 
-  nval <- length(sormoduni$term)
-  predsunitmp <- bind_cols(
-    Variable = as.character(sormoduni$term[2:nval]),
-    logor = sormoduni$estimate[2:nval],
-    lci = sormoduni$estimate[2:nval] - global_z05 * sormoduni$std.error[2:nval],
-    uci = sormoduni$estimate[2:nval] + global_z05 * sormoduni$std.error[2:nval],
-    p = fn(sormoduni$p.value[2:nval], dig = 3, p = TRUE)
+  nval <- length(sormod$term)
+  preds <- bind_cols(
+    Variable = as.character(sormod$term[2:nval]),
+    logor = sormod$estimate[2:nval],
+    lci = sormod$estimate[2:nval] - global_z05 * sormod$std.error[2:nval],
+    uci = sormod$estimate[2:nval] + global_z05 * sormod$std.error[2:nval],
+    p = fn(sormod$p.value[2:nval], dig = 3, p = TRUE)
   ) %>%
     mutate(orci = paste0(fn(exp(logor), 2), " (", fn(exp(lci), 2), "-", fn(exp(uci), 2), ")")) %>%
     select(Variable, orci, p)
 
-  if (i == 1) {
-    predsuni <<- predsunitmp
-  } else {
-    predsuni <<- bind_rows(predsuni, predsunitmp)
+  # crude
+  for (i in seq_along(tmpmodvars)) {
+    ormoduni <- with(impdata, glm(formula(paste0("scream_nttest == 'Yes' ~ ", tmpmodvars[i])),
+      family = binomial(link = "logit")
+    ))
+
+    sormoduni <- summary(pool(ormoduni))
+
+    nval <- length(sormoduni$term)
+    predsunitmp <- bind_cols(
+      Variable = as.character(sormoduni$term[2:nval]),
+      logor = sormoduni$estimate[2:nval],
+      lci = sormoduni$estimate[2:nval] - global_z05 * sormoduni$std.error[2:nval],
+      uci = sormoduni$estimate[2:nval] + global_z05 * sormoduni$std.error[2:nval],
+      p = fn(sormoduni$p.value[2:nval], dig = 3, p = TRUE)
+    ) %>%
+      mutate(orci = paste0(fn(exp(logor), 2), " (", fn(exp(lci), 2), "-", fn(exp(uci), 2), ")")) %>%
+      select(Variable, orci, p)
+
+    if (i == 1) {
+      predsuni <<- predsunitmp
+    } else {
+      predsuni <<- bind_rows(predsuni, predsunitmp)
+    }
   }
+
+  predall <- full_join(predsuni, preds, by = "Variable")
+  colnames(predall) <- c("Variable", rep(c("OR (95% CI)", "p-value"), 2))
+
+
+  write.xlsx(predall, paste0("./output/tabs/preds_", tabname, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+
+  default_kable(predall,
+    font_size = 6,
+    caption = paste0("Predictors of NT-proBNP testing - ", tabname),
+    longtable = TRUE,
+    escape = TRUE
+  ) %>%
+    add_header_above(c(" " = 1, "Crude" = 2, "Adjusted" = 2))
 }
+```
 
-predall <- full_join(predsuni, preds, by = "Variable")
-colnames(predall) <- c("Variable", rep(c("OR (95% CI)", "p-value"), 2))
+```{r predall, dependson="pred", cache=cacheon}
+predfunc(impdata = imprsdata, tabname = "Overall", nomultvar = c(
+  "shf_map_cat", "shf_bmi_cat", "shf_smoking_cat", "shf_sos_com_ihd",
+  "sos_com_peripheralartery", "sos_com_stroketia",
+  "sos_com_liver", "sos_com_cancer3y", "sos_com_muscoloskeletal3y",
+  "sos_com_dementia",
+  "shf_bbl", "shf_mra",
+  "shf_digoxin", "shf_asaantiplatelet", "shf_anticoagulantia"
+))
+```
 
+\clearpage
 
-write.xlsx(predall, paste0("./output/tabs/preds_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+```{r predref, dependson="pred", cache=cacheon}
+## Subsets of imputed data
+imp_ref <- subset_datlist(imprsdata, subset = c(rsdata$shf_ef_cat == "HFrEF"))
 
-default_kable(predall,
-  font_size = 6,
-  caption = "Predictors of NT-proBNP testing",
-  longtable = TRUE,
-  escape = TRUE
-) %>%
-  add_header_above(c(" " = 1, "Crude" = 2, "Adjusted" = 2))
+predfunc(impdata = imp_ref, tabname = "HFrEF", nounivar = "shf_ef_cat", nomultvar = c(
+  "shf_sex", "shf_age_cat",
+  "shf_bmi_cat", "scream_anemia",
+  "scream_sodium_cat", "scream_potassium_cat",
+  "shf_smoking_cat", "shf_sos_com_ihd",
+  "sos_com_peripheralartery", "sos_com_stroketia",
+  "sos_com_liver", "sos_com_cancer3y", "sos_com_muscoloskeletal3y",
+  "sos_com_dementia", "sos_com_copd",
+  "shf_bbl", "shf_mra", "shf_device_cat", "shf_asaantiplatelet", "shf_anticoagulantia",
+  "scb_fam", "scb_dispincome_cat2"
+))
 ```

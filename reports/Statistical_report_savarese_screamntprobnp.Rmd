@@ -17,6 +17,9 @@ urlcolor: blue
 linkcolor: black
 header-includes:
    - \usepackage{draftwatermark}
+   - \usepackage{pdflscape}
+   - \newcommand{\blandscape}{\begin{landscape}}
+   - \newcommand{\elandscape}{\end{landscape}}
 ---
 
 \newpage 
@@ -79,7 +82,7 @@ The median age (IQR) is `r rsdata %>% summarise(med = fn(median(shf_age), dig = 
 
 The labvalues from SCREAM are selected within +/- 14 days from index in SwedeHF, 
 where the one closest to index is chosen. If there are two tests of the same lab 
-from the same date the mean is calculated. So the labvalues could in fact be after index (but calculated the same as for NT-proBNP index value). Change? Need to think about intepretation in change analysis.  
+from the same date the mean is calculated. So labvalues could be after index. 
 
 ```{r npr}
 default_kable(cometa, caption = "Comorbidities and outcomes from VAL/KON")
@@ -107,9 +110,9 @@ Missing data was imputed with multiple imputation (n = 10) using mice [@mice].
 Variables included in the model are indicated in 
 Table \ref{tab:tab1}. 
 
-## Baseline characteristics
+Note that there are modifications to selection of variables in model to what is stated in the protocol. 
 
-Should be by something else than WHFE?
+## Baseline characteristics
 
 ```{r, child = "./src/tab1.Rmd"}
 
@@ -118,12 +121,6 @@ Should be by something else than WHFE?
 \clearpage
 
 ## Objective 1-2
-
-Should anything be by EF (only rEF)???? Need to discuss this for all analyses (not only obj 1-2) based on numbers!
-
-The first bullet under the objective: Proportions of unique patients who had NT-proBNP testing at the index date  +/- 2 weeks (closest to index date) will be selected. So should remaining info be for only pats w ntprobnp at index? Seems no good (will overestimate testing). 
-
-\clearpage
 
 ### Trend of NT-proBNP testing after the index date
 
@@ -157,17 +154,15 @@ Patients are censored at 2018-12-31 or death or move from Stockholm county.
 
 \clearpage
 
+\blandscape
+
 ### Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient 
 
 ```{r, child = "./src/no612_nt.Rmd"}
 
 ```
 
-### Number of NT-proBNP testing in the inpatient, outpatient, and other settings per patient 
-
-What is this??? Over what time period (as previous??)? But they will no longer be in-pats when tested in 6 mo...
-
-Setting in/out patient. There are 4 groups (should pats that are hosp for other reason than HF still be counted as in-patient? might be odd since they are not per defintion whfe). Question applies throughout.
+\elandscape
 
 ## Objective 3-4
 
@@ -179,62 +174,51 @@ Setting in/out patient. There are 4 groups (should pats that are hosp for other 
 
 ### Pattern of change 
 
-For 6 mo pre and post index I made restriction that 6 mo +/- 3 mo (otherwise could technically be index measure). OK? 
+Note that a cut-off of 3000 is used instead of 5000 (so stable low is defined as <3000). Further defined in 3 groups (Decrease > 20%, Stable (within +/-20%), Increase > 20%). 
+
+The 6 mo pre and post index are restricted to be within +/- 3 mo. 
 
 Should I add the following restriction (now not done): For the post index analyses the patients need to be alive and at risk at 6 mo after index to be included (necessary? per definition they will need to be alive 3 mo after index)???
-
-Should cut at 5000? see median values below.
-
-For objective 4c (we will also assess the change in NT-proBNP from pre-WHFE to post-WHFE for patients with WHFE and having NT-proBNP tested both at least 3 days before and after the WHFE. The mean (SD) and median of the change in NT-proBNP (post-WHFE – pre-WHFE) will be presented (Spaghetti plot to be verified if feasible).). Within what time limits? within 3 mo prior to 3 days prior compared to 1 day after to 3 mo after?
-
-### We will also conduct the analyses by stratifying patients by estimated glomerular filtration rate (eGFR; <=30, >30 to <60, >=60 mL/min/ 1.73 m2) as well as having atrial fibrillation (yes/no), inpatients vs. outpatients.
 
 ```{r, child = "./src/change_nt.Rmd"}
 
 ```
 
+\clearpage
+
 ## Objective 5:
-### Association between stable low, increased group, decreased group, and stable high with WHFE at index
 
-Since the index measurment can be AFTER WHFE is this a problem? 
+### Association between change in NT-proBNP and WHFE at index
 
-Only patients with measurments on NT-proBNP before and at index are included (no imputation performed for NT-proBNP). 
+Since the index measurement can be AFTER WHFE is this a problem? 
+
+Only patients with measurements on NT-proBNP before and at index are included (no imputation performed for NT-proBNP). 
 
 The association between change in NT-proBNP and WHFE is analysed using logistic regression models, 
 partly crude including only change in NT-proBNP in the model 
 and partly adjusted for variables indicated in Table \ref{tab:tab1}. The variables were selected based on clinical relevance.  
 
-Made adjustment to adjustment variables stated in protocol. OK?
-
 ```{r, child = "./src/whfe_nt.Rmd"}
 
 ```
 
-### Association between stable low, increased group, decreased group, and stable high with risk of all-cause and CV deaths  
+\clearpage
 
-For what group? Only WHFE?
+### Association between change groups (index to post) and risk of all-cause and CV deaths  
 
-Only patients with measurments on NT-proBNP before and at index are included. 
+Only patients with measurements on NT-proBNP before and at index are included. 
 
 The following outcomes are considered: 
 
 - CV mortality
 - All-cause mortality
 
-Data were censored at 2018-12-31 or death/move from Stockholm county. 
+Data were censored at 2018-12-31 or death/move from Stockholm county. Follow-up is started 6 mo after the indexdate. 
 
 Time to first events were presented with Kaplan-Meier curves and Cox proportional hazards regressions were 
 used to model the time to first event, partly crude including only change in NT-proBNP in the model 
 and partly adjusted for variables indicated in 
 Table \ref{tab:tab1}. The variables were selected based on clinical relevance. 
-
-As a consistency analysis, CV mortality, 
-was modelled using a sub-distributional hazards model [@fg] where death was treated as a 
-competing event. Should I do?? (not done now)
-
-Made adjustment to adjustment variables stated in protocol. OK?
-
-Is stated should do outcomes at 30 days and 1 year. But to have value on change in ntprobnp group need follow-up of at least 3 mo (to have post index value) so 30 d not possible (since per defintion no outcome in this time period). Did 1 and 3 years. Will be some bias due to only pats alive included. 
 
 ```{r, child = "./src/km.Rmd"}
 
@@ -248,9 +232,8 @@ Is stated should do outcomes at 30 days and 1 year. But to have value on change 
 
 ## Objective 6
 
-Not sure I understand the objective 6: "Receipt of NT-proBNP testing as dependent variable will be defined as whether patients received an NT-proBNP testing at the index date +/2 weeks, i.e. NT-proBNP testing yes" so did preditors...
-
-I added a few and removed a few adjustment variables (some not possible, for example dur of HF). Some I will need icd codes for (asthma for example). should follow exactly?
+Association between testing of NT-proBNP and covariates was assessed using logistic regression. 
+Variables < 0.1 in the crude models were selected for inclusion in the adjusted model. 
 
 ```{r, child = "./src/pred_nt.Rmd"}
 

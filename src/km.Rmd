@@ -1,12 +1,13 @@
 ```{r km, cache=cacheon}
 
-kmfunc <- function(time, event, eventname, yposplus = rep(0, 4)) {
+kmfunc <- function(time, event, eventname, changevar, yposplus = NULL) {
   cexmy <- 1.2
 
-  levs <- levels(rsdata %>% pull(scream_ntprobnpstablepost))
+  levs <- levels(rsdata %>% pull(!!sym(changevar)))
+  nlevs <- length(levs)
 
-  fit <- survfit(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ scream_ntprobnpstablepost")),
-    data = rsdata %>% filter(!is.na(scream_ntprobnpstablepost))
+  fit <- survfit(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", changevar)),
+    data = rsdata %>% filter(!is.na(!!sym(changevar)))
   )
   # c(bottom, left, top, right)
   par(mar = c(8.5, 8.6, 1, 5) + 0.1)
@@ -15,10 +16,10 @@ kmfunc <- function(time, event, eventname, yposplus = rep(0, 4)) {
     ylab = eventname,
     xscale = 365,
     yscale = 100,
-    col = global_kicols,
+    col = global_colsblue[c(1, 3, 5, 7)],
     mark.time = FALSE,
     bty = "n",
-    xlim = c(0, 3 * 365),
+    xlim = c(0, 2.5 * 365),
     ylim = c(0, 1),
     xlab = "Years",
     cex.lab = cexmy,
@@ -29,10 +30,12 @@ kmfunc <- function(time, event, eventname, yposplus = rep(0, 4)) {
   )
 
   axis(2, seq(0, 1, 0.25), seq(0, 100, 25), las = 2, cex.axis = cexmy)
-  axis(1, at = seq(0, 3, 1) * 365, seq(0, 3, 1), cex.axis = cexmy)
+  axis(1, at = seq(0, 2.5, 0.5) * 365, seq(0, 2.5, 0.5), cex.axis = cexmy)
 
-  ypos <- summary(fit, 364.5 * 3)$surv
+  ypos <- summary(fit, 364.5 * 2.5)$surv
 
+  if (is.null(yposplus)) {yposplus <- rep(0, nlevs)}
+    
   ylabs <- bind_cols(
     ypos = c(ypos + yposplus),
     ytext = levs
@@ -47,47 +50,69 @@ kmfunc <- function(time, event, eventname, yposplus = rep(0, 4)) {
     cex = cexmy,
   )
 
-  mtext("No. at risk", side = 1, line = 3.5, at = -340, adj = 0, cex = cexmy, font = 2)
-  mtext(levs[1], side = 1, line = 4.5, at = -340, adj = 0, cex = cexmy)
-  mtext(levs[2], side = 1, line = 5.5, at = -340, adj = 0, cex = cexmy)
-  mtext(levs[3], side = 1, line = 6.5, at = -340, adj = 0, cex = cexmy)
-  mtext(levs[4], side = 1, line = 7.5, at = -340, adj = 0, cex = cexmy)
+  mtext("No. at risk", side = 1, line = 3.5, at = -300, adj = 0, cex = cexmy, font = 2)
+  mtext(levs[1], side = 1, line = 4.5, at = -300, adj = 0, cex = cexmy)
+  mtext(levs[2], side = 1, line = 5.5, at = -300, adj = 0, cex = cexmy)
+  mtext(levs[3], side = 1, line = 6.5, at = -300, adj = 0, cex = cexmy)
+  if (nlevs > 3) {mtext(levs[4], side = 1, line = 7.5, at = -300, adj = 0, cex = cexmy)}
 
-  nrisk <- summary(fit, seq(0, 3, 1) * 365, extend = T)
+  nrisk <- summary(fit, seq(0, 2.5, 0.5) * 365, extend = T)
 
   axis(1,
-    at = seq(0, 3, 1) * 365, labels = nrisk$n.risk[nrisk$strata == paste0("scream_ntprobnpstablepost=", levs[1])],
+    at = seq(0, 2.5, 0.5) * 365, labels = nrisk$n.risk[nrisk$strata == paste0(changevar, "=", levs[1])],
     line = 3.5, tick = FALSE, cex.axis = cexmy
   )
   axis(1,
-    at = seq(0, 3, 1) * 365, labels = nrisk$n.risk[nrisk$strata == paste0("scream_ntprobnpstablepost=", levs[2])],
+    at = seq(0, 2.5, 0.5) * 365, labels = nrisk$n.risk[nrisk$strata == paste0(changevar, "=", levs[2])],
     line = 4.5, tick = FALSE, cex.axis = cexmy
   )
   axis(1,
-    at = seq(0, 3, 1) * 365, labels = nrisk$n.risk[nrisk$strata == paste0("scream_ntprobnpstablepost=", levs[3])],
+    at = seq(0, 2.5, 0.5) * 365, labels = nrisk$n.risk[nrisk$strata == paste0(changevar, "=", levs[3])],
     line = 5.5, tick = FALSE, cex.axis = cexmy
   )
+  if (nlevs > 3) {
   axis(1,
-    at = seq(0, 3, 1) * 365, labels = nrisk$n.risk[nrisk$strata == paste0("scream_ntprobnpstablepost=", levs[4])],
+    at = seq(0, 2.5, 0.5) * 365, labels = nrisk$n.risk[nrisk$strata == paste0(changevar, "=", levs[4])],
     line = 6.5, tick = FALSE, cex.axis = cexmy
   )
+  }
 }
 ```
 
-```{r deathcv, fig.cap="CV death", cache=cacheon, dependson="km", fig.width=8, fig.height=7}
+```{r deathcv, fig.cap="CV death - Overall 4 change groups", cache=cacheon, dependson="km", fig.width=8, fig.height=7}
 kmfunc(
-  time = "sos_outtime_death",
-  event = "sos_out_deathcv",
+  time = "sos_outtime_death3y",
+  event = "sos_out_deathcv3y",
   eventname = "CV death (%)",
+  changevar = "scream_ntprobnpstablepost", 
   yposplus = c(.007, 0, -0.007, 0)
 )
 ```
 
-```{r death, fig.cap="All-cause death", cache=cacheon, dependson="km", fig.width=8, fig.height=7}
+```{r death, fig.cap="All-cause death - Overall 4 change groups", cache=cacheon, dependson="km", fig.width=8, fig.height=7}
 kmfunc(
-  time = "sos_outtime_death",
-  event = "sos_out_death",
+  time = "sos_outtime_death3y",
+  event = "sos_out_death3y",
   eventname = "All-cause mortality (%)",
+  changevar = "scream_ntprobnpstablepost", 
   yposplus = c(.015, 0, -0.015, 0)
+)
+```
+
+```{r deathcv3, fig.cap="CV death - Overall 3 change groups", cache=cacheon, dependson="km", fig.width=8, fig.height=7}
+kmfunc(
+  time = "sos_outtime_death3y",
+  event = "sos_out_deathcv3y",
+  eventname = "CV death (%)",
+  changevar = "scream_ntprobnpstablepost2"
+)
+```
+
+```{r death3, fig.cap="All-cause death - Overall 3 change groups", cache=cacheon, dependson="km", fig.width=8, fig.height=7}
+kmfunc(
+  time = "sos_outtime_death3y",
+  event = "sos_out_death3y",
+  eventname = "All-cause mortality (%)",
+  changevar = "scream_ntprobnpstablepost2"
 )
 ```

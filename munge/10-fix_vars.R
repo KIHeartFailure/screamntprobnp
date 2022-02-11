@@ -114,10 +114,19 @@ rsdata <- rsdata %>%
       scream_ntprobnp <= 6000 ~ 6,
       scream_ntprobnp <= 7000 ~ 7,
       scream_ntprobnp <= 8000 ~ 8,
-      scream_ntprobnp > 8000 ~ 9,
+      scream_ntprobnp <= 9000 ~ 9,
+      scream_ntprobnp <= 10000 ~ 10,
+      scream_ntprobnp <= 11000 ~ 11,
+      scream_ntprobnp <= 12000 ~ 12,
+      scream_ntprobnp <= 13000 ~ 13,
+      scream_ntprobnp <= 14000 ~ 14,
+      scream_ntprobnp > 14000 ~ 15,
     ),
-    labels = c("<=1000", ">1000-2000", ">2000-3000", ">3000-4000", ">4000-5000", ">5000-6000", ">6000-7000", ">7000-8000", ">8000"),
-    levels = 1:9
+    labels = c(
+      "<=1000", ">1000-2000", ">2000-3000", ">3000-4000", ">4000-5000", ">5000-6000", ">6000-7000", ">7000-8000", ">8000-9000",
+      ">9000-10000", ">10000-11000", ">11000-12000", ">12000-13000", ">13000-14000", ">14000"
+    ),
+    levels = 1:15
     ),
     scream_ntprobnpstableprior = factor(
       case_when(
@@ -128,19 +137,43 @@ rsdata <- rsdata %>%
         scream_ntprobnp > 5000 & scream_ntprobnp6moprior > 5000 ~ 4
       ),
       levels = 1:4,
-      labels = c("Stable low", "Increased", "Decreased", "Stable high")
+      labels = c("Stable low", "Decreased", "Increased", "Stable high")
     ),
     scream_ntprobnpstablepost = factor(
       case_when(
         is.na(scream_ntprobnp) | is.na(scream_ntprobnp6mopost) ~ NA_real_,
-        scream_ntprobnp <= 5000 & scream_ntprobnp6mopost <= 5000 ~ 1,
-        scream_ntprobnp <= 5000 & scream_ntprobnp6mopost > 5000 ~ 2,
-        scream_ntprobnp > 5000 & scream_ntprobnp6mopost <= 5000 ~ 3,
-        scream_ntprobnp > 5000 & scream_ntprobnp6mopost > 5000 ~ 4
+        scream_ntprobnp <= 3000 & scream_ntprobnp6mopost <= 3000 ~ 1,
+        scream_ntprobnp <= 3000 & scream_ntprobnp6mopost > 3000 ~ 3,
+        scream_ntprobnp > 3000 & scream_ntprobnp6mopost <= 3000 ~ 2,
+        scream_ntprobnp > 3000 & scream_ntprobnp6mopost > 3000 ~ 4
       ),
       levels = 1:4,
-      labels = c("Stable low", "Increased", "Decreased", "Stable high")
+      labels = c("Stable low", "Decreased", "Increased", "Stable high")
     ),
+    diff_ntprobnpprior = (scream_ntprobnp - scream_ntprobnp6moprior) / scream_ntprobnp6moprior, 
+    diff_ntprobnppost = (scream_ntprobnp6mopost - scream_ntprobnp) / scream_ntprobnp, 
+    scream_ntprobnpstableprior2 = factor(
+      case_when(
+        is.na(diff_ntprobnpprior) ~ NA_real_,
+        diff_ntprobnpprior <= -0.2 ~ 2, 
+        diff_ntprobnpprior < 0.2 ~ 1, 
+        diff_ntprobnpprior >= 0.2 ~ 3
+      ),
+      levels = 1:3,
+      labels = c("Stable", "Decreased", "Increased")
+    ),
+    
+    scream_ntprobnpstablepost2 = factor(
+      case_when(
+        is.na(diff_ntprobnppost) ~ NA_real_,
+        diff_ntprobnppost <= -0.2 ~ 2, 
+        diff_ntprobnppost < 0.2 ~ 1, 
+        diff_ntprobnppost >= 0.2 ~ 3
+      ),
+      levels = 1:3,
+      labels = c("Stable", "Decreased", "Increased")
+    ),
+    
     shf_sos_com_af = case_when(
       sos_com_af == "Yes" |
         shf_af == "Yes" |
@@ -187,6 +220,13 @@ rsdata <- cut_surv(rsdata, sos_out_deathcv, sos_outtime_death, 365, rename = "1y
 rsdata <- cut_surv(rsdata, sos_out_death, sos_outtime_death, 365, rename = "1y")
 rsdata <- cut_surv(rsdata, sos_out_deathcv, sos_outtime_death, 365 * 3, rename = "3y", cuttime = F)
 rsdata <- cut_surv(rsdata, sos_out_death, sos_outtime_death, 365 * 3, rename = "3y")
+
+rsdata <- rsdata %>%
+  mutate(sos_outtime_death1y = sos_outtime_death1y - 365/2, 
+         sos_outtime_death1y = if_else(sos_outtime_death1y < 0, NA_real_, sos_outtime_death1y), 
+         sos_outtime_death3y = sos_outtime_death3y - 365/2, 
+         sos_outtime_death3y = if_else(sos_outtime_death3y < 0, NA_real_, sos_outtime_death3y))
+  
 
 # income
 

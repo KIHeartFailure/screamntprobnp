@@ -1,6 +1,5 @@
 ```{r no612nt, cache=cacheon}
 
-
 tmplab <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
   labnt,
   by = "LopNr"
@@ -11,7 +10,7 @@ tmplab <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
   ) %>%
   filter(tmptiment >= 0 & tmptiment <= 365)
 
-trendfunc <- function(timestop, timename) {
+trendfunc <- function(timestop, timename, data) {
   tmplab2 <- tmplab %>%
     filter(tmptiment <= timestop) %>%
     group_by(LopNr) %>%
@@ -19,7 +18,7 @@ trendfunc <- function(timestop, timename) {
     ungroup() %>%
     select(LopNr, n)
 
-  tmplab2 <- left_join(rsdata,
+  tmplab2 <- left_join(data,
     tmplab2,
     by = "LopNr"
   ) %>%
@@ -28,37 +27,85 @@ trendfunc <- function(timestop, timename) {
     ) %>%
     mutate(n = replace_na(n, 0))
 
-  tmplab2 <- tmplab2 %>%
-    group_by(whfe) %>%
+  tmplab2_all <- tmplab2 %>%
     summarise(
+      tot = n(),
       med = fn(median(n), dig = 1),
       q1 = fn(quantile(n, probs = 0.25), dig = 1),
       q3 = fn(quantile(n, probs = 0.75), dig = 1),
+      min = min(n),
+      max = max(n),
       mean = fn(mean(n), dig = 1),
       sd = fn(sd(n), dig = 1)
     ) %>%
     mutate(
-      outmed = paste0(med, " (", q1, "-", q3, ")"),
+      outmed = paste0(med, " (", min, ", ", q1, ", ", q3, ", ", max, ")"),
+      outmean = paste0(mean, " (", sd, ")")
+    ) %>%
+    mutate(
+      "Time point" = timename,
+      whfe = "Overall"
+    )
+
+  tmplab2_whfe <- tmplab2 %>%
+    group_by(whfe) %>%
+    summarise(
+      tot = n(),
+      med = fn(median(n), dig = 1),
+      q1 = fn(quantile(n, probs = 0.25), dig = 1),
+      q3 = fn(quantile(n, probs = 0.75), dig = 1),
+      min = min(n),
+      max = max(n),
+      mean = fn(mean(n), dig = 1),
+      sd = fn(sd(n), dig = 1)
+    ) %>%
+    mutate(
+      outmed = paste0(med, " (", min, ", ", q1, ", ", q3, ", ", max, ")"),
       outmean = paste0(mean, " (", sd, ")")
     ) %>%
     mutate("Time point" = timename) %>%
     ungroup()
+
+  out <- bind_rows(tmplab2_all, tmplab2_whfe)
 }
-trend <- trendfunc(timestop = 365 / 2, "Within 6 mo post index")
-trend <- rbind(trend, trendfunc(365, "Within 1 year post index"))
-trend <- rbind(trend, trendfunc(timestop = 365 * 2, "Within 2 years post index"))
 
-trend <- trend %>%
-  select(whfe, `Time point`, outmed, outmean) %>%
-  pivot_wider(names_from = whfe, values_from = c(outmed, outmean)) %>%
-  select(`Time point`, outmed_WHFE, outmean_WHFE, outmed_NWHFE, outmean_NWHFE)
+trendfunc2 <- function(data2, popname) {
+  trend <- trendfunc(timestop = 365 / 2, "Within 6 mo post index", data2)
+  trend <- rbind(trend, trendfunc(365, "Within 1 year post index", data2))
+  trend <- rbind(trend, trendfunc(timestop = 365 * 2, "Within 2 years post index", data2))
 
-colnames(trend) <- c("Time point", rep(c("Median (qi-q3)", "Mean (sd)"), 2))
+  trend <- trend %>%
+    select(whfe, `Time point`, tot, outmed, outmean) %>%
+    pivot_wider(names_from = whfe, values_from = c(tot, outmed, outmean)) %>%
+    mutate(Population = popname) %>%
+    select(Population, `Time point`, tot_Overall, outmed_Overall, outmean_Overall, tot_WHFE, outmed_WHFE, outmean_WHFE, tot_NWHFE, outmed_NWHFE, outmean_NWHFE)
+}
 
-default_kable(trend,
-  scale_down = F,
-  caption = "NT-proBNP testing per patient within 6 mo, 1 year and 2 years after the index date",
-  escape = TRUE
-) %>%
-  add_header_above(c(" " = 1, "WHFE" = 2, "NWHFE" = 2))
+trendfunc3 <- function(data3, tabname) {
+  trend <- trendfunc2(data2 = data3, popname = "Overall")
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_sex == "Female"), popname = "Female"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_sex == "Male"), popname = "Male"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_age_cat == "<75"), popname = "<75y"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_age_cat == ">=75"), popname = ">=75y"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_location == "In-patient"), popname = "In-patient"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_location == "Out-patient"), popname = "Out-patient"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(scream_gfrckdepi_cat == "<=30"), popname = "eGFR <=30"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(scream_gfrckdepi_cat == ">30-<60"), popname = "eGFR >30-<60"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(scream_gfrckdepi_cat == ">=60"), popname = "eGFR >=60"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_sos_com_af == "No"), popname = "No AF"))
+  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_sos_com_af == "Yes"), popname = "AF"))
+
+  colnames(trend) <- c("Population", "Time point", rep(c("N", "Median (min, qi, q3, max)", "Mean (sd)"), 3))
+
+  write.xlsx(trend, paste0("./output/tabs/tabtrend_", tabname, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+
+  default_kable(trend,
+    caption = paste0("NT-proBNP testing per patient within 6 mo, 1 year and 2 years after the index date - ", tabname),
+    escape = TRUE
+  ) %>%
+    add_header_above(c(" " = 1, " " = 1, "Overall" = 3, "WHFE" = 3, "NWHFE" = 3))
+}
+
+trendfunc3(data3 = rsdata, tabname = "Overall")
+trendfunc3(rsdata %>% filter(shf_ef_cat == "HFrEF"), "HFrEF")
 ```

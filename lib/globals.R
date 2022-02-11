@@ -6,14 +6,30 @@ mutate <- dplyr::mutate
 complete <- tidyr::complete
 
 # colours 
-global_kicols <- c(
-  grDevices::rgb(135, 0, 82, maxColorValue = 255),
-  grDevices::rgb(212, 9, 99, maxColorValue = 255),
-  grDevices::rgb(128, 128, 128, maxColorValue = 255),
-  grDevices::rgb(151, 216, 218, maxColorValue = 255), # aqua
-  grDevices::rgb(136, 196, 197, maxColorValue = 255), # teal
-  grDevices::rgb(189, 171, 179, maxColorValue = 255) # lavender
-)
+
+global_colsblue <- rev(c(
+  #"#F0FAFF",
+  #"#D6F0F7",
+  "#9BD4E5",
+  "#70C1DA",
+  "#4FB3D1",
+  "#2F99BA",
+  "#0F83A3",
+  "#006E8A",
+  "#034F69",
+  "#023647"
+))
+
+global_colsgrey <- rev(c(
+  "#C2C2C2",
+  "#A6A6A6",
+  "#8C8C8C",
+  "#666666",
+  "#4D4D4D",
+  "#333333",
+  "#262626",
+  "#1A1A1A"
+))
 
 # used for calculation of ci 
 global_z05 <- qnorm(1 - 0.025)

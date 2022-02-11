@@ -77,6 +77,7 @@ tabvars <- c(
 
 tabvars_not_in_mod <- c(
   "sos_location",
+  "sos_location2",
   "shf_indexyear",
   "shf_age",
   "sos_com_renal",
