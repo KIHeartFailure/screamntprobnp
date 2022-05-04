@@ -55,6 +55,9 @@ trendfunc2 <- function(data2, popname) {
   trend <- trendfunc(timestart = -90, timestop = -1, timename = "90-1 days prior to index", data = data2)
   trend <- rbind(trend, trendfunc(-60, -1, "60-1 days prior to index", data2))
   trend <- rbind(trend, trendfunc(-30, -1, "30-1 days prior to index", data2))
+  trend <- rbind(trend, trendfunc(-14, -1, "14-1 days prior to index", data2))
+  trend <- rbind(trend, trendfunc(-14, 14, "14 days prior-14 days post index", data2))
+  trend <- rbind(trend, trendfunc(0, 14, "0-14 days post index", data2))
   trend <- rbind(trend, trendfunc(0, 30, "0-30 days post index", data2))
   trend <- rbind(trend, trendfunc(0, 60, "0-60 days post index", data2))
   trend <- rbind(trend, trendfunc(0, 90, "0-90 days post index", data2))
@@ -63,9 +66,13 @@ trendfunc2 <- function(data2, popname) {
     select(whfe, `Time point`, ntot) %>%
     pivot_wider(names_from = whfe, values_from = ntot)
 
+  write.xlsx(trend, 
+    paste0("./output/tabs/NT-proBNP testing within 14, 30, 60 and 90 days before and after the index date - ", 
+           popname, "_",Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  
   default_kable(trend,
     scale_down = F,
-    caption = paste0("NT-proBNP testing within 30, 60 and 90 days before and after the index date - ", popname),
+    caption = paste0("NT-proBNP testing within 14, 30, 60 and 90 days before and after the index date - ", popname),
     escape = TRUE
   )
 }

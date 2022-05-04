@@ -44,7 +44,8 @@ changefunc2 <- function(data2, changevar2, tabname, tabnamexlsx) {
   change <- rbind(change, changefunc(data = data2 %>% filter(shf_sos_com_af == "No"), changevar = changevar2, popname = "No AF"))
   change <- rbind(change, changefunc(data = data2 %>% filter(shf_sos_com_af == "Yes"), changevar = changevar2, popname = "AF"))
 
-  write.xlsx(change, paste0("./output/tabs/tabchange_", tabnamexlsx, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  write.xlsx(change, paste0("./output/tabs/", str_remove_all(tabname, fixed("+/-")), 
+                            "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
   levs <- levels(rsdata %>% pull(!!sym(changevar2)))
   colnames(change) <- c("Population", rep(levs, 3))
@@ -147,6 +148,12 @@ changefunckont <- function(data, tabname) {
 
   both <- both %>%
     pivot_wider(names_from = whfe, values_from = ds)
+
+  write.xlsx(both, paste0(
+    "./output/tabs/Change in NT-proBNP from prior (3 months to 3 days prior to index) to post (1 day to 3 months post index) - ", tabname, "_", Sys.Date(), ".xlsx"
+  ),
+  rowNames = FALSE, overwrite = TRUE
+  )
 
   default_kable(both,
     caption = paste0("Change in NT-proBNP from prior (3 months to 3 days prior to index) to post (1 day to 3 months post index) - ", tabname),

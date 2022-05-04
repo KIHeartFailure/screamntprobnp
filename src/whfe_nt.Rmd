@@ -62,7 +62,7 @@ logregfunc <- function(data, changevar, tabname) {
     fn(modmult$p.value[2:nlevs], 3, p = T)
   ))
 
-  write.xlsx(out, paste0("./output/tabs/changentwhfe_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  write.xlsx(out, paste0("./output/tabs/Association between change in NT-proBNP (prior to index) and WHFE - ", tabname, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
   default_kable(out,
     font_size = 6,

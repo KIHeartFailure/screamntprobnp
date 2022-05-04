@@ -62,7 +62,6 @@ rsdata <- rsdata %>%
     ),
     sos_outtime_death = as.numeric(censdtm - shf_indexdtm)
   ) %>%
-  filter(censdtm >= shf_indexdtm) %>% # 0 obs
   select(-shf_deathdtm)
 
 rsdata <- create_deathvar(

@@ -60,6 +60,9 @@ funcconc <- function(data, tabname) {
   both <- both %>%
     pivot_wider(names_from = whfe, values_from = ds)
 
+  write.xlsx(both, paste0("./output/tabs/NT-proBNP concentrations at index (2 weeks) - ", tabname, "_",Sys.Date(), ".xlsx"), 
+    rowNames = FALSE, overwrite = TRUE)
+
   default_kable(both,
     caption = paste0("NT-proBNP concentrations at index (+/- 2 weeks) - ", tabname),
     escape = TRUE

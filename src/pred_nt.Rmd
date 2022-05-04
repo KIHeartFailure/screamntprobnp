@@ -55,8 +55,8 @@ predfunc <- function(impdata, tabname, nomultvar = NULL, nounivar = NULL) {
   predall <- full_join(predsuni, preds, by = "Variable")
   colnames(predall) <- c("Variable", rep(c("OR (95% CI)", "p-value"), 2))
 
-
-  write.xlsx(predall, paste0("./output/tabs/preds_", tabname, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  write.xlsx(predall, paste0("./output/tabs/Predictors of NT-proBNP testing - ", tabname, 
+                             "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
   default_kable(predall,
     font_size = 6,

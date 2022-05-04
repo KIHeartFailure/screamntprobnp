@@ -46,9 +46,10 @@ tab1func <- function(data, stratavar, tabname) {
       )
     )
 
-
   write.xlsx(tab1 %>%
-    select(Variable, Missing:p), paste0("./output/tabs/tab1_", tabname, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+    select(Variable, Missing:p), paste0("./output/tabs/Baseline characteristics ", 
+                                        tabname, "_",Sys.Date(), ".xlsx"), 
+    rowNames = FALSE, overwrite = TRUE)
 
   # footnotes
   tab1 <- tab1 %>%
@@ -69,7 +70,6 @@ tab1func <- function(data, stratavar, tabname) {
       Variable = sub("  ", ". ", Variable)
     ) %>%
     select(Variable, Missing:p)
-
 
   ## fix in order to use escape = TRUE
   colnames(tab1) <- sanitize_text(c(

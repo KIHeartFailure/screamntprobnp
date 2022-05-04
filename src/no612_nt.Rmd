@@ -97,7 +97,8 @@ trendfunc3 <- function(data3, tabname) {
 
   colnames(trend) <- c("Population", "Time point", rep(c("N", "Median (min, qi, q3, max)", "Mean (sd)"), 3))
 
-  write.xlsx(trend, paste0("./output/tabs/tabtrend_", tabname, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  write.xlsx(trend, paste0("./output/tabs/NT-proBNP testing per patient within 6 mo, 1 year and 2 years after the index date - ", 
+                           tabname, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
 
   default_kable(trend,
     caption = paste0("NT-proBNP testing per patient within 6 mo, 1 year and 2 years after the index date - ", tabname),
