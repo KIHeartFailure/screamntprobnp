@@ -72,14 +72,6 @@ rsdata <- left_join(rsdata,
 
 flow <- rbind(flow, c("Exclude posts emigrated from Stockholm prior to indexdate in SwedeHF", nrow(rsdata)))
 
-rsdata <- rsdata %>%
-  group_by(LopNr) %>%
-  arrange(shf_indexdtm) %>%
-  slice(1) %>%
-  ungroup()
-
-flow <- rbind(flow, c("First post / patient", nrow(rsdata)))
-
 # WHEF defined from VAL/KON -----------------------------------------------
 
 hf <- inner_join(
@@ -103,7 +95,7 @@ hfnow <- hf %>%
   select(LopNr, shf_indexdtm, sos_locationhf)
 
 hfprev <- hf %>%
-  filter(diff < 365 / 2 & diff >= 0 & tmp_hfsos, sos_source == "sv") %>%
+  filter(diff < 365 / 2 & diff >= 0 & tmp_hfsos & sos_source == "sv") %>%
   group_by(LopNr, shf_indexdtm) %>%
   arrange(diff) %>%
   slice(1) %>%
@@ -158,6 +150,14 @@ rsdata <- left_join(
 
 rsdata <- rsdata %>%
   filter(!is.na(sos_location))
-flow <- rbind(flow, c("Exclude posts without match within +/- 14 days in KON/VAL", nrow(rsdata)))
+flow <- rbind(flow, c("Exclude posts without match within +/- 14 days in VAL", nrow(rsdata)))
+
+rsdata <- rsdata %>%
+  group_by(LopNr) %>%
+  arrange(shf_indexdtm) %>%
+  slice(1) %>%
+  ungroup()
+
+flow <- rbind(flow, c("First post / patient", nrow(rsdata)))
 
 colnames(flow) <- c("Criteria", "N")

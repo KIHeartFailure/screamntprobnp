@@ -70,7 +70,8 @@ predfunc <- function(impdata, tabname, nomultvar = NULL, nounivar = NULL) {
 
 ```{r predall, dependson="pred", cache=cacheon}
 predfunc(impdata = imprsdata, tabname = "Overall", nomultvar = c(
-  "shf_map_cat", "shf_bmi_cat", "shf_smoking_cat", "shf_sos_com_ihd",
+  "shf_map_cat", "shf_bmi_cat", "scream_anemia", "scream_sodium_cat", 
+  "shf_smoking_cat", "shf_sos_com_ihd",
   "sos_com_peripheralartery", "sos_com_stroketia",
   "sos_com_liver", "sos_com_cancer3y", "sos_com_muscoloskeletal3y",
   "sos_com_dementia",
@@ -90,8 +91,8 @@ predfunc(impdata = imp_ref, tabname = "HFrEF", nounivar = "shf_ef_cat", nomultva
   "shf_bmi_cat", "scream_anemia",
   "scream_sodium_cat", "scream_potassium_cat",
   "shf_smoking_cat", "shf_sos_com_ihd",
-  "sos_com_peripheralartery", "sos_com_stroketia",
-  "sos_com_liver", "sos_com_cancer3y", "sos_com_muscoloskeletal3y",
+  "sos_com_stroketia",
+  "sos_com_cancer3y", "sos_com_muscoloskeletal3y",
   "sos_com_dementia", "sos_com_copd",
   "shf_bbl", "shf_mra", "shf_device_cat", "shf_asaantiplatelet", "shf_anticoagulantia",
   "scb_fam", "scb_dispincome_cat2"

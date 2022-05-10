@@ -5,10 +5,10 @@
 rsdata <- rsdata %>%
   mutate(
     sos_location2 = factor(case_when(
-      sos_location %in% c("HF in-patient", "Other in-patient") ~ 1,
-      sos_location %in% c("HF out-patient", "Other out-patient") ~ 2
+      sos_location %in% c("HF out-patient", "Other out-patient") ~ 1,
+      sos_location %in% c("HF in-patient", "Other in-patient") ~ 2
     ),
-    levels = 1:2, labels = c("In-patient", "Out-patient")
+    levels = 1:2, labels = c("Out-patient", "In-patient")
     ),
     scream_anemia = case_when(
       is.na(scream_hb) ~ NA_character_,
@@ -150,30 +150,28 @@ rsdata <- rsdata %>%
       levels = 1:4,
       labels = c("Stable low", "Decreased", "Increased", "Stable high")
     ),
-    diff_ntprobnpprior = (scream_ntprobnp - scream_ntprobnp6moprior) / scream_ntprobnp6moprior, 
-    diff_ntprobnppost = (scream_ntprobnp6mopost - scream_ntprobnp) / scream_ntprobnp, 
+    diff_ntprobnpprior = (scream_ntprobnp - scream_ntprobnp6moprior) / scream_ntprobnp6moprior,
+    diff_ntprobnppost = (scream_ntprobnp6mopost - scream_ntprobnp) / scream_ntprobnp,
     scream_ntprobnpstableprior2 = factor(
       case_when(
         is.na(diff_ntprobnpprior) ~ NA_real_,
-        diff_ntprobnpprior <= -0.2 ~ 2, 
-        diff_ntprobnpprior < 0.2 ~ 1, 
+        diff_ntprobnpprior <= -0.2 ~ 2,
+        diff_ntprobnpprior < 0.2 ~ 1,
         diff_ntprobnpprior >= 0.2 ~ 3
       ),
       levels = 1:3,
       labels = c("Stable", "Decreased", "Increased")
     ),
-    
     scream_ntprobnpstablepost2 = factor(
       case_when(
         is.na(diff_ntprobnppost) ~ NA_real_,
-        diff_ntprobnppost <= -0.2 ~ 2, 
-        diff_ntprobnppost < 0.2 ~ 1, 
+        diff_ntprobnppost <= -0.2 ~ 2,
+        diff_ntprobnppost < 0.2 ~ 1,
         diff_ntprobnppost >= 0.2 ~ 3
       ),
       levels = 1:3,
       labels = c("Stable", "Decreased", "Increased")
     ),
-    
     shf_sos_com_af = case_when(
       sos_com_af == "Yes" |
         shf_af == "Yes" |
@@ -212,50 +210,20 @@ rsdata <- rsdata %>%
   ) %>%
   select(-starts_with("tmp_"))
 
-# limit outcomes to 30 days and 1 yr
+# limit outcomes to 1 and 3 yr
 
-# rsdata <- cut_surv(rsdata, sos_out_deathcv, sos_outtime_death, 30, rename = "30d", cuttime = F)
-# rsdata <- cut_surv(rsdata, sos_out_death, sos_outtime_death, 30, rename = "30d")
 rsdata <- cut_surv(rsdata, sos_out_deathcv, sos_outtime_death, 365, rename = "1y", cuttime = F)
 rsdata <- cut_surv(rsdata, sos_out_death, sos_outtime_death, 365, rename = "1y")
 rsdata <- cut_surv(rsdata, sos_out_deathcv, sos_outtime_death, 365 * 3, rename = "3y", cuttime = F)
 rsdata <- cut_surv(rsdata, sos_out_death, sos_outtime_death, 365 * 3, rename = "3y")
 
 rsdata <- rsdata %>%
-  mutate(sos_outtime_death1y = sos_outtime_death1y - 365/2, 
-         sos_outtime_death1y = if_else(sos_outtime_death1y < 0, NA_real_, sos_outtime_death1y), 
-         sos_outtime_death3y = sos_outtime_death3y - 365/2, 
-         sos_outtime_death3y = if_else(sos_outtime_death3y < 0, NA_real_, sos_outtime_death3y))
-  
-
-# income
-
-inc <- rsdata %>%
-  group_by(shf_indexyear) %>%
-  summarise(
-    incmed = quantile(scb_dispincome,
-      probs = 0.5,
-      na.rm = TRUE
-    ),
-    .groups = "drop_last"
-  )
-
-rsdata <- left_join(
-  rsdata,
-  inc,
-  by = c("shf_indexyear")
-) %>%
   mutate(
-    scb_dispincome_cat2 = case_when(
-      scb_dispincome < incmed ~ 1,
-      scb_dispincome >= incmed ~ 2
-    ),
-    scb_dispincome_cat2 = factor(scb_dispincome_cat2,
-      levels = 1:2,
-      labels = c("Below medium", "Above medium")
-    )
-  ) %>%
-  select(-incmed)
+    sos_outtime_death1y = sos_outtime_death1y - 365 / 2,
+    sos_outtime_death1y = if_else(sos_outtime_death1y < 0, NA_real_, sos_outtime_death1y),
+    sos_outtime_death3y = sos_outtime_death3y - 365 / 2,
+    sos_outtime_death3y = if_else(sos_outtime_death3y < 0, NA_real_, sos_outtime_death3y)
+  )
 
 rsdata <- rsdata %>%
   mutate(across(where(is_character), factor))

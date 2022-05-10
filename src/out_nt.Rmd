@@ -123,8 +123,10 @@ survfunc2 <- function(data2, impdata2, changevar2, noadjvar2 = NULL, tabname) {
     s1, s2, s3, s4
   )
 
-  write.xlsx(outall, paste0("./output/tabs/Association between change in NT-proBNP (index to post) and outcomes - ", 
-                            tabname, "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  write.xlsx(outall, paste0(
+    "./output/tabs/Association between change in NT-proBNP (index to post) and outcomes - ",
+    tabname, "_", Sys.Date(), ".xlsx"
+  ), rowNames = FALSE, overwrite = TRUE)
 
   default_kable(outall,
     font_size = 6,

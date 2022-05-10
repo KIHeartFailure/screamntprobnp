@@ -1,12 +1,4 @@
 
-# koll <- migration %>%
-#  filter(Posttyp == "Utv") %>%
-#  group_by(lopnr) %>%
-#  slice(2) %>%
-#  ungroup() %>%
-#  count()
-
-
 tmp_rsdataflytt <- inner_join(rsdata %>%
   select(LopNr, shf_indexdtm),
 flytt %>%
@@ -17,7 +9,7 @@ by = "LopNr"
 ) %>%
   filter(
     flyttdtm > shf_indexdtm,
-    flyttdtm <= ymd("2019-12-31")
+    flyttdtm <= ymd("2018-12-31")
   ) %>%
   group_by(LopNr, shf_indexdtm) %>%
   slice(1) %>%
@@ -55,7 +47,6 @@ rsdata <- rsdata %>%
   mutate(
     censdtm = pmin(sos_deathdtm, flyttdtm, na.rm = TRUE),
     censdtm = pmin(censdtm, ymd("2018-12-31"), na.rm = TRUE),
-    # censdtm = pmin(censdtm, shf_indexdtm + 365 * 3, na.rm = TRUE),
     sos_out_death = factor(if_else(censdtm == sos_deathdtm & !is.na(sos_deathdtm), 1, 0),
       levels = 0:1,
       labels = c("No", "Yes")
@@ -75,3 +66,8 @@ rsdata <- create_deathvar(
   valsclass = "fac",
   warnings = FALSE
 )
+
+rsdata <- rsdata %>%
+  filter(shf_indexdtm <= censdtm)
+
+flow <- rbind(flow, c("Exclude patients with indexdate after date of death", nrow(rsdata)))

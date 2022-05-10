@@ -85,7 +85,7 @@ kmfunc(
   event = "sos_out_deathcv3y",
   eventname = "CV death (%)",
   changevar = "scream_ntprobnpstablepost", 
-  yposplus = c(.007, 0, -0.007, 0)
+  yposplus = c(.01, -0.01, 0, 0)
 )
 ```
 
@@ -94,8 +94,7 @@ kmfunc(
   time = "sos_outtime_death3y",
   event = "sos_out_death3y",
   eventname = "All-cause mortality (%)",
-  changevar = "scream_ntprobnpstablepost", 
-  yposplus = c(.015, 0, -0.015, 0)
+  changevar = "scream_ntprobnpstablepost"
 )
 ```
 

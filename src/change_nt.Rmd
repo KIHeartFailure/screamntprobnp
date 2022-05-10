@@ -44,8 +44,10 @@ changefunc2 <- function(data2, changevar2, tabname, tabnamexlsx) {
   change <- rbind(change, changefunc(data = data2 %>% filter(shf_sos_com_af == "No"), changevar = changevar2, popname = "No AF"))
   change <- rbind(change, changefunc(data = data2 %>% filter(shf_sos_com_af == "Yes"), changevar = changevar2, popname = "AF"))
 
-  write.xlsx(change, paste0("./output/tabs/", str_remove_all(tabname, fixed("+/-")), 
-                            "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  write.xlsx(change, paste0(
+    "./output/tabs/", str_remove_all(tabname, fixed("+/-")),
+    "_", Sys.Date(), ".xlsx"
+  ), rowNames = FALSE, overwrite = TRUE)
 
   levs <- levels(rsdata %>% pull(!!sym(changevar2)))
   colnames(change) <- c("Population", rep(levs, 3))
@@ -59,50 +61,42 @@ changefunc2 <- function(data2, changevar2, tabname, tabnamexlsx) {
 
 changefunc2(
   data2 = rsdata, changevar2 = "scream_ntprobnpstableprior",
-  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - Overall 4 change groups",
-  tabnamexlsx = "priortoindex_4groups_overall"
+  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - Overall 4 change groups"
 )
 
 changefunc2(
   data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar2 = "scream_ntprobnpstableprior",
-  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - HFrEF 4 change groups",
-  tabnamexlsx = "priortoindex_4groups_ref"
+  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - HFrEF 4 change groups"
 )
 
 changefunc2(
   data2 = rsdata, changevar2 = "scream_ntprobnpstablepost",
-  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - Overall 4 change groups",
-  tabnamexlsx = "indextopost_4groups_overall"
+  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - Overall 4 change groups"
 )
 
 changefunc2(
   data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar2 = "scream_ntprobnpstablepost",
-  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - HFrEF 4 change groups",
-  tabnamexlsx = "indextopost_4groups_ref"
+  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - HFrEF 4 change groups"
 )
 
 changefunc2(
   data2 = rsdata, changevar2 = "scream_ntprobnpstableprior2",
-  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - Overall 3 change groups",
-  tabnamexlsx = "priortoindex_3groups_overall"
+  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - Overall 3 change groups"
 )
 
 changefunc2(
   data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar2 = "scream_ntprobnpstableprior2",
-  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - HFrEF 3 change groups",
-  tabnamexlsx = "priortoindex_3groups_ref"
+  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - HFrEF 3 change groups"
 )
 
 changefunc2(
   data2 = rsdata, changevar2 = "scream_ntprobnpstablepost2",
-  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - Overall 3 change groups",
-  tabnamexlsx = "indextopost_3groups_overall"
+  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - Overall 3 change groups"
 )
 
 changefunc2(
   data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar2 = "scream_ntprobnpstablepost2",
-  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - HFrEF 3 change groups",
-  tabnamexlsx = "indextopost_3groups_ref"
+  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - HFrEF 3 change groups"
 )
 ```
 

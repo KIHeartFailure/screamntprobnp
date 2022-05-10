@@ -1,6 +1,7 @@
 ```{r freq306090nt, cache=cacheon}
 
-tmplab <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
+tmplab <- left_join(
+  rsdata %>% select(LopNr, shf_indexdtm),
   labnt,
   by = "LopNr"
 ) %>%
@@ -56,7 +57,6 @@ trendfunc2 <- function(data2, popname) {
   trend <- rbind(trend, trendfunc(-60, -1, "60-1 days prior to index", data2))
   trend <- rbind(trend, trendfunc(-30, -1, "30-1 days prior to index", data2))
   trend <- rbind(trend, trendfunc(-14, -1, "14-1 days prior to index", data2))
-  trend <- rbind(trend, trendfunc(-14, 14, "14 days prior-14 days post index", data2))
   trend <- rbind(trend, trendfunc(0, 14, "0-14 days post index", data2))
   trend <- rbind(trend, trendfunc(0, 30, "0-30 days post index", data2))
   trend <- rbind(trend, trendfunc(0, 60, "0-60 days post index", data2))
@@ -66,10 +66,14 @@ trendfunc2 <- function(data2, popname) {
     select(whfe, `Time point`, ntot) %>%
     pivot_wider(names_from = whfe, values_from = ntot)
 
-  write.xlsx(trend, 
-    paste0("./output/tabs/NT-proBNP testing within 14, 30, 60 and 90 days before and after the index date - ", 
-           popname, "_",Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
-  
+  write.xlsx(trend,
+    paste0(
+      "./output/tabs/NT-proBNP testing within 14, 30, 60 and 90 days before and after the index date - ",
+      popname, "_", Sys.Date(), ".xlsx"
+    ),
+    rowNames = FALSE, overwrite = TRUE
+  )
+
   default_kable(trend,
     scale_down = F,
     caption = paste0("NT-proBNP testing within 14, 30, 60 and 90 days before and after the index date - ", popname),

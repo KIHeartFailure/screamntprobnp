@@ -1,20 +1,68 @@
 ```{r tab1func, cache=cacheon}
 
-tab1func <- function(data, stratavar, tabname) {
-  tab1 <- print(CreateTableOne(
+
+tab1func <- function(data = rsdata, tabname) {
+
+  # all 4 strata inc missing
+  tabds <- print(CreateTableOne(
     vars = tabvars,
     data = data,
-    strata = stratavar
+    strata = c("scream_nttest", "whfe")
   ),
   missing = TRUE, printToggle = FALSE, nonnormal = tabvars,
-  catDigits = 1, contDigits = 1,
+  catDigits = 1, contDigits = 1, test = FALSE,
   noSpaces = TRUE,
   explain = FALSE
   )
+  tabds <- as_tibble(cbind(var = rownames(tabds), tabds))
 
-  tab1 <- as_tibble(cbind(var = rownames(tab1), tab1)) %>%
-    select(-test) %>%
-    select(var, Missing, everything())
+  # p within whfe
+  tabp_whfe <- print(CreateTableOne(
+    vars = tabvars,
+    data = data %>% filter(whfe == "WHFE"),
+    strata = "scream_nttest"
+  ),
+  missing = FALSE, printToggle = FALSE, nonnormal = tabvars,
+  catDigits = 1, contDigits = 1, test = TRUE,
+  noSpaces = TRUE,
+  explain = FALSE
+  )
+  tabp_whfe <- as_tibble(cbind(var = rownames(tabp_whfe), tabp_whfe)) %>%
+    select(p) %>%
+    rename(p_whfe = p)
+
+  # p within nwhfe
+  tabp_nwhfe <- print(CreateTableOne(
+    vars = tabvars,
+    data = data %>% filter(whfe == "NWHFE"),
+    strata = "scream_nttest"
+  ),
+  missing = FALSE, printToggle = FALSE, nonnormal = tabvars,
+  catDigits = 1, contDigits = 1, test = TRUE,
+  noSpaces = TRUE,
+  explain = FALSE
+  )
+  tabp_nwhfe <- as_tibble(cbind(var = rownames(tabp_nwhfe), tabp_nwhfe)) %>%
+    select(p) %>%
+    rename(p_nwhfe = p)
+
+  # p within tested
+  tabp_tested <- print(CreateTableOne(
+    vars = tabvars,
+    data = data %>% filter(scream_nttest == "Yes"),
+    strata = "whfe"
+  ),
+  missing = FALSE, printToggle = FALSE, nonnormal = tabvars,
+  catDigits = 1, contDigits = 1, test = TRUE,
+  noSpaces = TRUE,
+  explain = FALSE
+  )
+  tabp_tested <- as_tibble(cbind(var = rownames(tabp_tested), tabp_tested)) %>%
+    select(p) %>%
+    rename(p_tested = p)
+
+  tab1 <- bind_cols(tabds, tabp_whfe, tabp_nwhfe, tabp_tested) %>%
+    select(var, Missing, "Yes:WHFE", "No:WHFE", p_whfe, "Yes:NWHFE", "No:NWHFE", p_nwhfe, p_tested)
 
   tab1 <- tab1 %>%
     # remove = Yes
@@ -46,11 +94,6 @@ tab1func <- function(data, stratavar, tabname) {
       )
     )
 
-  write.xlsx(tab1 %>%
-    select(Variable, Missing:p), paste0("./output/tabs/Baseline characteristics ", 
-                                        tabname, "_",Sys.Date(), ".xlsx"), 
-    rowNames = FALSE, overwrite = TRUE)
-
   # footnotes
   tab1 <- tab1 %>%
     mutate(
@@ -60,20 +103,37 @@ tab1func <- function(data, stratavar, tabname) {
       footnote4 = if_else(var_tmp %in% modvars, footnote_marker_symbol(4), ""),
       footnote5 = if_else(str_detect(var, "^scb_dispincome_cat"), footnote_marker_symbol(5), "")
     ) %>%
-    unite(footnote, starts_with("footnote"), sep = "") %>%
-    mutate(
-      # so no probs
+    unite(footnote, starts_with("footnote"), sep = "")
+
+  tab1xls <- tab1 %>%
+    mutate(footnotexls = if_else(var_tmp %in% modvars, "*", "")) %>%
+    mutate(Variable = paste0(Variable, footnotexls)) %>%
+    select(Variable, Missing:p_tested)
+
+  ## fix in order to use escape = TRUE
+  colnames(tab1xls) <- c(
+    "Variables", "Missing (%)", "Tested", "Not tested", "p-value", "Tested", "Not tested", "p-value", "p-value tested (WHFE vs NWFE)"
+  )
+
+  write.xlsx(tab1xls, paste0(
+    "./output/tabs/Baseline characteristics ",
+    tabname, "_", Sys.Date(), ".xlsx"
+  ),
+  rowNames = FALSE, overwrite = TRUE
+  )
+
+  tab1 <- tab1 %>%
+    mutate( # so no probs
       Variable = sanitize_text(Variable),
       Variable = paste0(Variable, footnote),
-
       # space in Latex output (fix this other way?)
       Variable = sub("  ", ". ", Variable)
     ) %>%
-    select(Variable, Missing:p)
+    select(Variable, Missing:p_tested)
 
   ## fix in order to use escape = TRUE
   colnames(tab1) <- sanitize_text(c(
-    "Variables", "Missing (%)", levels(data %>% pull(!!sym(stratavar))), "p-value"
+    "Variables", "Missing (%)", "Tested", "Not tested", "p-value", "Tested", "Not tested", "p-value", "p-value tested"
   ))
 
   footnote(
@@ -83,6 +143,7 @@ tab1func <- function(data, stratavar, tabname) {
       longtable = TRUE,
       escape = FALSE
     ) %>%
+      add_header_above(c(" " = 1, " " = 1, "WHFE" = 3, "NWHFE" = 3, "WHFE vs NWFE" = 1)) %>%
       landscape(),
     general = c(
       "Categorical variables are presented with n (%) and tested with chi-square test and continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
@@ -99,25 +160,9 @@ tab1func <- function(data, stratavar, tabname) {
 ```
 
 ```{r tab1, cache=cacheon, dependson="tab1func"}
-tab1func(rsdata, "whfe", "by WHFE")
+tab1func(rsdata, "")
 ```
 
 ```{r tab1ref, cache=cacheon, dependson="tab1func"}
-tab1func(rsdata %>% filter(shf_ef_cat == "HFrEF"), "whfe", "by WHFE - HFrEF")
-```
-
-```{r tab1mref, cache=cacheon, dependson="tab1func"}
-tab1func(rsdata %>% filter(shf_ef_cat == "HFmrEF"), "whfe", "by WHFE - HFmrEF")
-```
-
-```{r tab1pef, cache=cacheon, dependson="tab1unc"}
-tab1func(rsdata %>% filter(shf_ef_cat == "HFpEF"), "whfe", "by WHFE - HFpEF")
-```
-
-```{r tab1wbnp, cache=cacheon, dependson="tab1func"}
-tab1func(rsdata %>% filter(!is.na(scream_ntprobnp)), "whfe", "by WHFE - Patients with NT-proBNP at index")
-```
-
-```{r tab1wbnpref, cache=cacheon, dependson="tab1func"}
-tab1func(rsdata %>% filter(!is.na(scream_ntprobnp) & shf_ef_cat == "HFrEF"), "whfe", "by WHFE - HFrEF - Patients with NT-proBNP at index")
+tab1func(rsdata %>% filter(shf_ef_cat == "HFrEF"), " - HFrEF")
 ```

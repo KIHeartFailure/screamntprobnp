@@ -82,7 +82,7 @@ The median age (IQR) is `r rsdata %>% summarise(med = fn(median(shf_age), dig = 
 
 The labvalues from SCREAM are selected within +/- 14 days from index in SwedeHF, 
 where the one closest to index is chosen. If there are two tests of the same lab 
-from the same date the mean is calculated. So labvalues could be after index. 
+from the same date the mean is calculated. Note therefore that index labvalues can be after index. 
 
 ```{r npr}
 default_kable(cometa, caption = "Comorbidities and outcomes from VAL/KON")
@@ -158,6 +158,8 @@ Patients are censored at 2018-12-31 or death or move from Stockholm county.
 
 ### Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient 
 
+Only patients with complete follow-up during the specified time period are included. 
+
 ```{r, child = "./src/no612_nt.Rmd"}
 
 ```
@@ -176,9 +178,9 @@ Patients are censored at 2018-12-31 or death or move from Stockholm county.
 
 Note that a cut-off of 3000 is used instead of 5000 (so stable low is defined as <3000). Further defined in 3 groups (Decrease > 20%, Stable (within +/-20%), Increase > 20%). 
 
-The 6 mo pre and post index are restricted to be within +/- 3 mo. 
+The 6 mo pre and post index are restricted to be within 6 months +/- 3 mo. The labvalues closest to 3 and 6 months respectively are selected. 
 
-Should I add the following restriction (now not done): For the post index analyses the patients need to be alive and at risk at 6 mo after index to be included (necessary? per definition they will need to be alive 3 mo after index)???
+Note that there is no restriction that the patient needs to be alive at 6 months (since they need value at least 3 mo after index this is however indirectly applied).
 
 ```{r, child = "./src/change_nt.Rmd"}
 
@@ -193,6 +195,7 @@ Should I add the following restriction (now not done): For the post index analys
 Since the index measurement can be AFTER WHFE is this a problem? 
 
 Only patients with measurements on NT-proBNP before and at index are included (no imputation performed for NT-proBNP). 
+The change is calculated on the labvalue closest to 6 months prior to index. 
 
 The association between change in NT-proBNP and WHFE is analysed using logistic regression models, 
 partly crude including only change in NT-proBNP in the model 
@@ -206,7 +209,9 @@ and partly adjusted for variables indicated in Table \ref{tab:tab1}. The variabl
 
 ### Association between change groups (index to post) and risk of all-cause and CV deaths  
 
-Only patients with measurements on NT-proBNP before and at index are included. 
+Only patients with measurements on NT-proBNP at and after index are included. 
+
+The change is calculated on the labvalue closest to 6 months post index. 
 
 The following outcomes are considered: 
 
@@ -219,10 +224,13 @@ Time to first events were presented with Kaplan-Meier curves and Cox proportiona
 used to model the time to first event, partly crude including only change in NT-proBNP in the model 
 and partly adjusted for variables indicated in 
 Table \ref{tab:tab1}. The variables were selected based on clinical relevance. 
+Note that the variables are collected at index (and not 6 mo after index, although time starts 6 mo after index).
 
 ```{r, child = "./src/km.Rmd"}
 
 ```
+
+\clearpage
 
 ```{r, child = "./src/out_nt.Rmd"}
 

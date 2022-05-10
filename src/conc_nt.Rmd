@@ -27,9 +27,9 @@ funcconc <- function(data, tabname) {
   kont_all <- data %>%
     filter(scream_nttest == "Yes") %>%
     summarise(
-      med = fn(median(scream_ntprobnp), dig = 1),
-      q1 = fn(quantile(scream_ntprobnp, probs = 0.25), dig = 1),
-      q3 = fn(quantile(scream_ntprobnp, probs = 0.75), dig = 1),
+      med = fn(median(scream_ntprobnp), dig = 0),
+      q1 = fn(quantile(scream_ntprobnp, probs = 0.25), dig = 0),
+      q3 = fn(quantile(scream_ntprobnp, probs = 0.75), dig = 0),
       min = fn(min(scream_ntprobnp), dig = 0),
       max = fn(max(scream_ntprobnp), dig = 0)
     ) %>%
@@ -44,9 +44,9 @@ funcconc <- function(data, tabname) {
     filter(scream_nttest == "Yes") %>%
     group_by(whfe) %>%
     summarise(
-      med = fn(median(scream_ntprobnp), dig = 1),
-      q1 = fn(quantile(scream_ntprobnp, probs = 0.25), dig = 1),
-      q3 = fn(quantile(scream_ntprobnp, probs = 0.75), dig = 1),
+      med = fn(median(scream_ntprobnp), dig = 0),
+      q1 = fn(quantile(scream_ntprobnp, probs = 0.25), dig = 0),
+      q3 = fn(quantile(scream_ntprobnp, probs = 0.75), dig = 0),
       min = fn(min(scream_ntprobnp), dig = 0),
       max = fn(max(scream_ntprobnp), dig = 0)
     ) %>%
@@ -60,8 +60,9 @@ funcconc <- function(data, tabname) {
   both <- both %>%
     pivot_wider(names_from = whfe, values_from = ds)
 
-  write.xlsx(both, paste0("./output/tabs/NT-proBNP concentrations at index (2 weeks) - ", tabname, "_",Sys.Date(), ".xlsx"), 
-    rowNames = FALSE, overwrite = TRUE)
+  write.xlsx(both, paste0("./output/tabs/NT-proBNP concentrations at index (2 weeks) - ", tabname, "_", Sys.Date(), ".xlsx"),
+    rowNames = FALSE, overwrite = TRUE
+  )
 
   default_kable(both,
     caption = paste0("NT-proBNP concentrations at index (+/- 2 weeks) - ", tabname),

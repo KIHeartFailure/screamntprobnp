@@ -31,7 +31,7 @@ labfunc("potas", "potassium")
 
 # 6 mo prior/post index
 
-labfunc6mo <- function(start, stop, name) {
+labfunc6mo <- function(start, stop, time, name) {
   labname <- paste0("scream_ntprobnp", name)
 
   tmp_rsdatalab <- left_join(
@@ -39,10 +39,11 @@ labfunc6mo <- function(start, stop, name) {
     labnt,
     by = "LopNr"
   ) %>%
-    mutate(diff = as.numeric(labdtm - shf_indexdtm)) %>%
+    mutate(diff = as.numeric(labdtm - shf_indexdtm), 
+           difftime = abs(diff - time)) %>%
     filter(diff >= start & diff <= stop) %>%
     group_by(LopNr) %>%
-    arrange(abs(diff)) %>%
+    arrange(difftime) %>%
     slice(1) %>%
     ungroup() %>%
     rename(!!labname := bnp) %>%
@@ -54,7 +55,7 @@ labfunc6mo <- function(start, stop, name) {
   )
 }
 
-labfunc6mo(start = -9 * 30.5, stop = -3 * 30.5, name = "6moprior")
-labfunc6mo(start = 3 * 30.5, stop = 9 * 30.5, name = "6mopost")
-labfunc6mo(start = -3 * 30.5, stop = -3, name = "3moprior")
-labfunc6mo(start = 1, stop = 3 * 30.5, name = "3mopost")
+labfunc6mo(start = -9 * 30.5, stop = -3 * 30.5, -6 * 30.5, name = "6moprior")
+labfunc6mo(start = 3 * 30.5, stop = 9 * 30.5, 6 * 30.5, name = "6mopost")
+labfunc6mo(start = -3 * 30.5, stop = -3, -3 * 30.5, name = "3moprior")
+labfunc6mo(start = 1, stop = 3 * 30.5, 3 * 30.5, name = "3mopost")

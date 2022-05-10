@@ -15,7 +15,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -31,7 +31,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -47,7 +47,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -63,7 +63,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -79,7 +79,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -92,10 +92,10 @@ rsdata <- create_sosvar(
   type = "com",
   name = "pci",
   opkod = " FNG",
-  # stoptime = -5 * 365.25,
+  stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out)"
+  meta_reg = "VAL (in, out, pc)"
 )
 rsdata <- create_sosvar(
   sosdata = patreg,
@@ -109,10 +109,10 @@ rsdata <- create_sosvar(
   name = "cabg",
   diakod = " Z951| Z955",
   opkod = " FNA| FNB| FNC| FND| FNE| FNF| FNH",
-  # stoptime = -5 * 365.25,
+  stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -128,7 +128,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -144,7 +144,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 rsdata <- create_sosvar(
   sosdata = patreg,
@@ -161,7 +161,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -177,7 +177,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 rsdata <- create_sosvar(
   sosdata = patreg,
@@ -192,7 +192,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -208,7 +208,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 rsdata <- create_sosvar(
   sosdata = patreg,
@@ -223,7 +223,7 @@ rsdata <- create_sosvar(
   stoptime = -3 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 rsdata <- create_sosvar(
   sosdata = patreg,
@@ -238,7 +238,7 @@ rsdata <- create_sosvar(
   stoptime = -3 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 rsdata <- create_sosvar(
@@ -256,7 +256,7 @@ rsdata <- create_sosvar(
   stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE,
-  meta_reg = "VAL/KON (in, out, pc)"
+  meta_reg = "VAL (in, out, pc)"
 )
 
 
