@@ -1,8 +1,8 @@
 ```{r pred, cache=cacheon}
 
 predfunc <- function(impdata, tabname, nomultvar = NULL, nounivar = NULL) {
-  if (is.null(nounivar)) tmpmodvars <- modvars
-  if (!is.null(nounivar)) tmpmodvars <- modvars[!(modvars %in% nounivar)]
+  if (is.null(nounivar)) tmpmodvars <- c(modvars, "whfe")
+  if (!is.null(nounivar)) tmpmodvars <- c(modvars[!(modvars %in% nounivar)], "whfe")
 
   if (is.null(nomultvar)) multvars <- tmpmodvars
   if (!is.null(nomultvar)) multvars <- tmpmodvars[!(tmpmodvars %in% nomultvar)]

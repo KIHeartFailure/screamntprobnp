@@ -88,12 +88,17 @@ tabvars_not_in_mod <- c(
   "shf_bpdia",
   "shf_heartrate",
   "shf_bmi",
+  "shf_bmi_cat",
   "scream_hb",
   "scream_sodium",
+  "scream_sodium_cat",
   "scream_potassium",
+  "scream_potassium_cat",
   "scream_gfrckdepi",
   "scream_ntprobnp",
-  "sos_com_charlsonci"
+  "sos_com_charlsonci",
+  "sos_com_dementia",
+  "sos_com_peripheralartery"
 )
 
 modvars <- tabvars[!(tabvars %in% tabvars_not_in_mod)]
