@@ -1,0 +1,83 @@
+
+```{r splinefunc, cache=cacheon}
+
+mytermplot <- function(mod, xlab = "Change in NT-proBNP (%)", ylab = "Hazard Ratio (95% CI)",
+                       yaxismy = NULL, xaxismy = NULL, data2) {
+  cexmy <- 1.2
+
+  zz <- termplot(mod, se = TRUE, plot = FALSE, terms = 1)
+
+  # HR = 1 at 0 https://cran.r-project.org/web/packages/survival/vignettes/splines.pdf
+  hfterm <- zz$diff_ntprobnppost
+
+  center <- with(hfterm, y[x == 0])
+
+  lci <- zz$diff_ntprobnppost$y - 1.96 * zz$diff_ntprobnppost$se - center
+  uci <- zz$diff_ntprobnppost$y + 1.96 * zz$diff_ntprobnppost$se - center
+
+  if (is.null(yaxismy)) {
+    yaxismy <- log(c(min(hfterm$y), max(hfterm$y)))
+  }
+  if (is.null(xaxismy)) {
+    xaxismy <- c(round(min(hfterm$x)), round(max(hfterm$x)))
+  }
+
+  # c(bottom, left, top, right)
+  par(mar = c(5, 4, 2, 2) + 0.1)
+
+
+  plot(hfterm$x, hfterm$y - center,
+    type = "n", axes = F,
+    xaxs = "i", yaxs = "i", xlim = c(min(xaxismy), max(xaxismy)),
+    ylim = log(c(min(yaxismy), max(yaxismy))),
+    xlab = xlab, ylab = ylab, cex.lab = cexmy
+  )
+
+  polygon(
+    x = c(rev(hfterm$x), hfterm$x),
+    y = c(rev(uci), lci),
+    col = global_colsblue[8],
+    border = NA
+  )
+
+  axis(1, xaxismy, cex.axis = cexmy)
+  axis(2, log(yaxismy), yaxismy, las = 2, cex.axis = cexmy)
+
+  lines(hfterm$x, hfterm$y - center, lwd = 3, col = global_colsblue[3])
+
+  abline(h = 0, col = 1, lty = 3, lwd = 2)
+
+  rug(data2$diff_ntprobnppost)
+
+  invisible(zz)
+}
+
+splinefunc <- function(time, event, data, yaxismy2, xaxismy2) {
+  mod <- coxph(formula(paste0(
+    "Surv(", time, ",", event, " == 'Yes') ~ ns(diff_ntprobnppost, df = 4)"
+  )),
+  data = data
+  )
+  mytermplot(mod, data2 = data, yaxismy = yaxismy2, xaxismy = xaxismy2)
+}
+```
+
+```{r splinecvdeath, fig.cap="Spline CVD over 3 years", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+splinefunc(
+  time = "sos_outtime_death3y",
+  event = "sos_out_deathcv3y",
+  data = rsdata,
+  xaxismy2 = c(-100, 0, 100, 200, 300, 400, 500),
+  yaxismy2 = c(0.05, 0.1, 0.25, 0.5, 1, 2, 3, 4, 6, 8)
+)
+```
+
+```{r splinedeath, fig.cap="Spline All-cause death over 3 years", cache=cacheon, dependson="splinefunc", fig.width=8, fig.height=7}
+splinefunc(
+  time = "sos_outtime_death3y",
+  event = "sos_out_death3y",
+  data = rsdata,
+  xaxismy2 = c(-100, 0, 100, 200, 300, 400, 500),
+  yaxismy2 = c(0.05, 0.1, 0.25, 0.5, 1, 2, 3, 4, 6, 8)
+)
+```

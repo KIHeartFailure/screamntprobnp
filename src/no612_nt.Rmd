@@ -88,7 +88,6 @@ trendfunc3 <- function(data3, tabname) {
   trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_age_cat == "<75"), popname = "<75y"))
   trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(shf_age_cat == ">=75"), popname = ">=75y"))
   trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(sos_location2 == "In-patient"), popname = "In-patient"))
-  trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(sos_location2 == "Out-patient"), popname = "Out-patient"))
   trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(scream_gfrckdepi_cat == "<=30"), popname = "eGFR <=30"))
   trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(scream_gfrckdepi_cat == ">30-<60"), popname = "eGFR >30-<60"))
   trend <- rbind(trend, trendfunc2(data2 = data3 %>% filter(scream_gfrckdepi_cat == ">=60"), popname = "eGFR >=60"))

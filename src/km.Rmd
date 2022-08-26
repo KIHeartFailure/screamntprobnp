@@ -94,24 +94,7 @@ kmfunc(
   time = "sos_outtime_death3y",
   event = "sos_out_death3y",
   eventname = "All-cause mortality (%)",
-  changevar = "scream_ntprobnpstablepost"
-)
-```
-
-```{r deathcv3, fig.cap="CV death - Overall 3 change groups", cache=cacheon, dependson="km", fig.width=8, fig.height=7}
-kmfunc(
-  time = "sos_outtime_death3y",
-  event = "sos_out_deathcv3y",
-  eventname = "CV death (%)",
-  changevar = "scream_ntprobnpstablepost2"
-)
-```
-
-```{r death3, fig.cap="All-cause death - Overall 3 change groups", cache=cacheon, dependson="km", fig.width=8, fig.height=7}
-kmfunc(
-  time = "sos_outtime_death3y",
-  event = "sos_out_death3y",
-  eventname = "All-cause mortality (%)",
-  changevar = "scream_ntprobnpstablepost2"
+  changevar = "scream_ntprobnpstablepost",
+  yposplus = c(.01, -0.01, 0, 0)
 )
 ```

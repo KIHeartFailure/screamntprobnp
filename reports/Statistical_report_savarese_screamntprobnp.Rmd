@@ -16,6 +16,7 @@ nocite: '@*'
 urlcolor: blue
 linkcolor: black
 header-includes:
+   - \usepackage{subfig}
    - \usepackage{draftwatermark}
    - \usepackage{pdflscape}
    - \newcommand{\blandscape}{\begin{landscape}}
@@ -80,9 +81,9 @@ The median age (IQR) is `r rsdata %>% summarise(med = fn(median(shf_age), dig = 
 
 ## Created variables 
 
-The labvalues from SCREAM are selected within +/- 14 days from index in SwedeHF, 
+The labvalues from SCREAM are selected within 14 days prior to index (including the index day) in SwedeHF, 
 where the one closest to index is chosen. If there are two tests of the same lab 
-from the same date the mean is calculated. Note therefore that index labvalues can be after index. 
+from the same date the mean is calculated. 
 
 ```{r npr}
 default_kable(cometa, caption = "Comorbidities and outcomes from VAL/KON")
@@ -106,7 +107,7 @@ comparisons were made and therefore the results should be viewed with some care.
 
 ## Missing data
 
-Missing data was imputed with multiple imputation (n = 10) using mice [@mice]. 
+Missing data was imputed with multiple imputation (n = 20) using mice [@mice]. 
 Variables included in the model are indicated in 
 Table \ref{tab:tab1}. 
 
@@ -166,6 +167,12 @@ Only patients with complete follow-up during the specified time period are inclu
 
 \elandscape
 
+```{r, child = "./src/no612_ntplots.Rmd"}
+
+```
+
+\clearpage
+
 ## Objective 3-4
 
 ### NT-proBNP concentration and distribution
@@ -176,9 +183,9 @@ Only patients with complete follow-up during the specified time period are inclu
 
 ### Pattern of change 
 
-Note that a cut-off of 3000 is used instead of 5000 (so stable low is defined as <3000). Further defined in 3 groups (Decrease > 20%, Stable (within +/-20%), Increase > 20%). 
+Note that a cut-off of 3000 is used instead of 5000 (so stable low is defined as <3000). 
 
-The 6 mo pre and post index are restricted to be within 6 months +/- 3 mo. The labvalues closest to 3 and 6 months respectively are selected. 
+The 6 mo pre and post index are restricted to be within 6 months +/- 3 mo. The labvalues closest 6 months are selected. 
 
 Note that there is no restriction that the patient needs to be alive at 6 months (since they need value at least 3 mo after index this is however indirectly applied).
 
@@ -191,8 +198,6 @@ Note that there is no restriction that the patient needs to be alive at 6 months
 ## Objective 5:
 
 ### Association between change in NT-proBNP and WHFE at index
-
-Since the index measurement can be AFTER WHFE is this a problem? 
 
 Only patients with measurements on NT-proBNP before and at index are included (no imputation performed for NT-proBNP). 
 The change is calculated on the labvalue closest to 6 months prior to index. 
@@ -222,9 +227,7 @@ Data were censored at 2018-12-31 or death/move from Stockholm county. Follow-up 
 
 Time to first events were presented with Kaplan-Meier curves and Cox proportional hazards regressions were 
 used to model the time to first event, partly crude including only change in NT-proBNP in the model 
-and partly adjusted for variables indicated in 
-Table \ref{tab:tab1}. The variables were selected based on clinical relevance. 
-Note that the variables are collected at index (and not 6 mo after index, although time starts 6 mo after index).
+and partly adjusted for 1) the index NT-proBNP value 2) the 6 mo NT-proBNP value,
 
 ```{r, child = "./src/km.Rmd"}
 
@@ -233,6 +236,15 @@ Note that the variables are collected at index (and not 6 mo after index, althou
 \clearpage
 
 ```{r, child = "./src/out_nt.Rmd"}
+
+```
+
+\clearpage
+
+The univariable cox regression including % change from index to 6 months 
+modelled using a natural cubic spline with 4 degrees of freedom is depicted. The reference (HR = 1) is set at no change.
+
+```{r, child = "./src/splines_out_nt.Rmd"}
 
 ```
 

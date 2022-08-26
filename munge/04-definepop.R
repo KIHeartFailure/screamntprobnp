@@ -44,8 +44,12 @@ flow <- rbind(flow, c("Exclude posts without ICD-10 code (I110| I130| I132| I255
                       diagnosis for HF > 6 months before", nrow(rsdata)))
 
 rsdata <- rsdata %>%
-  filter(!is.na(shf_durationhf) & shf_durationhf == ">6mo")
-flow <- rbind(flow, c("Exclude posts with missing duration of HF or duration of HF < 6 mo in SwedeHF", nrow(rsdata)))
+  filter(!is.na(shf_durationhf))
+flow <- rbind(flow, c("Exclude posts with missing duration of HF in SwedeHF", nrow(rsdata)))
+
+rsdata <- rsdata %>%
+  filter(shf_durationhf == ">6mo")
+flow <- rbind(flow, c("Exclude posts with duration of HF < 6 mo in SwedeHF", nrow(rsdata)))
 
 rsdata <- rsdata %>%
   filter(!is.na(shf_ef))
@@ -85,23 +89,14 @@ hf <- inner_join(
     tmp_hfsos = stringr::str_detect(HDIA, " I110| I130| I132| I255| I420| I423| I425| I426| I427| I428| I429| I43| I50| J81| K761| R57")
   )
 
-hfnow <- hf %>%
-  filter(abs(diff) < 14 & tmp_hfsos) %>%
+hfhosp <- hf %>%
+  filter(abs(diff) < 14 & tmp_hfsos & sos_source == "sv") %>%
   group_by(LopNr, shf_indexdtm) %>%
   arrange(abs(diff)) %>%
   slice(1) %>%
   ungroup() %>%
-  mutate(sos_locationhf = if_else(sos_source == "sv", 1, 0)) %>%
+  mutate(sos_locationhf = 1) %>%
   select(LopNr, shf_indexdtm, sos_locationhf)
-
-hfprev <- hf %>%
-  filter(diff < 365 / 2 & diff >= 0 & tmp_hfsos & sos_source == "sv") %>%
-  group_by(LopNr, shf_indexdtm) %>%
-  arrange(diff) %>%
-  slice(1) %>%
-  ungroup() %>%
-  mutate(prevhfhosp = 1) %>%
-  select(LopNr, shf_indexdtm, prevhfhosp)
 
 anypost <- hf %>%
   filter(abs(diff) < 14) %>%
@@ -112,14 +107,8 @@ anypost <- hf %>%
   mutate(sos_locationany = if_else(sos_source == "sv", 1, 0)) %>%
   select(LopNr, shf_indexdtm, sos_locationany)
 
-
 allhosp <- full_join(
-  hfnow,
-  hfprev,
-  by = c("LopNr", "shf_indexdtm")
-)
-allhosp <- full_join(
-  allhosp,
+  hfhosp,
   anypost,
   by = c("LopNr", "shf_indexdtm")
 )
@@ -132,21 +121,19 @@ rsdata <- left_join(
   mutate(
     sos_location = factor(case_when(
       sos_locationhf == 1 ~ 1,
-      sos_locationhf == 0 ~ 2,
-      sos_locationany == 1 ~ 3,
-      sos_locationany == 0 ~ 4
+      sos_locationany == 1 ~ 2,
+      sos_locationany == 0 ~ 3
     ),
-    levels = 1:4, labels = c("HF in-patient", "HF out-patient", "Other in-patient", "Other out-patient")
+    levels = 1:3, labels = c("HF in-patient", "Other in-patient", "Out-patient")
     ),
     whfe = factor(case_when(
       sos_locationhf == 1 ~ 1,
-      sos_locationhf == 0 & prevhfhosp == 1 ~ 1,
       TRUE ~ 2
     ),
     levels = 1:2, labels = c("WHFE", "NWHFE")
     )
   ) %>%
-  select(-sos_locationhf, -prevhfhosp, -sos_locationany)
+  select(-sos_locationhf, -sos_locationany)
 
 rsdata <- rsdata %>%
   filter(!is.na(sos_location))

@@ -61,42 +61,22 @@ changefunc2 <- function(data2, changevar2, tabname, tabnamexlsx) {
 
 changefunc2(
   data2 = rsdata, changevar2 = "scream_ntprobnpstableprior",
-  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - Overall 4 change groups"
+  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index - Overall 4 change groups"
 )
 
 changefunc2(
   data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar2 = "scream_ntprobnpstableprior",
-  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - HFrEF 4 change groups"
+  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index - HFrEF 4 change groups"
 )
 
 changefunc2(
   data2 = rsdata, changevar2 = "scream_ntprobnpstablepost",
-  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - Overall 4 change groups"
+  tabname = "Change in NT-proBNP from index to 6 (+/- 3 mo) - Overall 4 change groups"
 )
 
 changefunc2(
   data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar2 = "scream_ntprobnpstablepost",
-  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - HFrEF 4 change groups"
-)
-
-changefunc2(
-  data2 = rsdata, changevar2 = "scream_ntprobnpstableprior2",
-  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - Overall 3 change groups"
-)
-
-changefunc2(
-  data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar2 = "scream_ntprobnpstableprior2",
-  tabname = "Change in NT-proBNP from 6 (+/- 3 mo) prior to index (+/- 2 weeks) - HFrEF 3 change groups"
-)
-
-changefunc2(
-  data2 = rsdata, changevar2 = "scream_ntprobnpstablepost2",
-  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - Overall 3 change groups"
-)
-
-changefunc2(
-  data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar2 = "scream_ntprobnpstablepost2",
-  tabname = "Change in NT-proBNP from index (+/- 2 weeks) to 6 (+/- 3 mo) - HFrEF 3 change groups"
+  tabname = "Change in NT-proBNP from index to 6 (+/- 3 mo) - HFrEF 4 change groups"
 )
 ```
 
@@ -104,7 +84,7 @@ changefunc2(
 ```{r changentkont, cache=cacheon}
 changefunckont <- function(data, tabname) {
   kont_all <- data %>%
-    mutate(ntdiff = scream_ntprobnp3mopost - scream_ntprobnp3moprior) %>%
+    mutate(ntdiff = scream_ntprobnp6mopost - scream_ntprobnp) %>%
     filter(!is.na(ntdiff)) %>%
     summarise(
       n = n(),
@@ -122,7 +102,7 @@ changefunckont <- function(data, tabname) {
     select(whfe, "NT-proBNP", ds)
 
   kont_whfe <- data %>%
-    mutate(ntdiff = scream_ntprobnp3mopost - scream_ntprobnp3moprior) %>%
+    mutate(ntdiff = scream_ntprobnp6mopost - scream_ntprobnp) %>%
     filter(!is.na(ntdiff)) %>%
     group_by(whfe) %>%
     summarise(
@@ -144,13 +124,13 @@ changefunckont <- function(data, tabname) {
     pivot_wider(names_from = whfe, values_from = ds)
 
   write.xlsx(both, paste0(
-    "./output/tabs/Change in NT-proBNP from prior (3 months to 3 days prior to index) to post (1 day to 3 months post index) - ", tabname, "_", Sys.Date(), ".xlsx"
+    "./output/tabs/Change in NT-proBNP from index to 6 months post (+/- 3 mo) - ", tabname, "_", Sys.Date(), ".xlsx"
   ),
   rowNames = FALSE, overwrite = TRUE
   )
 
   default_kable(both,
-    caption = paste0("Change in NT-proBNP from prior (3 months to 3 days prior to index) to post (1 day to 3 months post index) - ", tabname),
+    caption = paste0("Change in NT-proBNP from index to 6 months post (+/- 3 mo) - ", tabname),
     escape = TRUE
   )
 }

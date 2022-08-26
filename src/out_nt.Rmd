@@ -1,15 +1,5 @@
 ```{r outnt, cache=cacheon}
 survfunc <- function(data, changevar, time, event, eventname) {
-  levs <- levels(data %>% pull(!!changevar))
-  nlevs <- length(levs)
-  out <- data.frame(matrix(NA, ncol = nlevs + 2, 2))
-
-  out[1, 1] <- eventname
-  colnames(out) <- c("Outcome", "Model", levs)
-
-  ## incidence rate
-  out[1, 2] <- "No events, sum py, incidence rate/100py (95% CI)"
-
   ev <- data %>%
     filter(!is.na(!!sym(changevar))) %>%
     group_by(!!sym(changevar), .drop = F) %>%
@@ -26,6 +16,17 @@ survfunc <- function(data, changevar, time, event, eventname) {
     )
   r <- pois.exact(x = ev$ev, pt = s$s / 100)
 
+  levs <- levels(data %>% pull(!!changevar))
+  nlevs <- length(levs)
+  out <- data.frame(matrix(NA, ncol = nlevs + 2, ifelse(all(ev$ev > 4), 4, 1)))
+
+  out[1, 1] <- eventname
+  colnames(out) <- c("Outcome", "Model", levs)
+
+  ## incidence rate
+  out[1, 2] <- "No events, sum py, incidence rate/100py (95% CI)"
+
+
   out[1, 3:(nlevs + 2)] <- paste0(
     ev$ev, ", ",
     fn(s$s, dig = 0), ", ",
@@ -34,21 +35,50 @@ survfunc <- function(data, changevar, time, event, eventname) {
     fn(r$upper, dig = 1), ")"
   )
 
-  # cox regressions
-  ## crude
-  out[2, 2] <- "Crude HR (95% CI), p-value"
+  if (all(ev$ev > 4)) {
+    # cox regressions
+    ## crude
+    out[2, 2] <- "Crude HR (95% CI), p-value"
 
-  ## crude
-  mod <- summary(coxph(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", changevar)),
-    data = data
-  ))
+    mod <- summary(coxph(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", changevar)),
+      data = data
+    ))
 
-  out[2, 3:(nlevs + 2)] <- c("ref", paste0(
-    fn(mod$conf.int[1:(nlevs - 1), 1], dig = 2),
-    " (", fn(mod$conf.int[1:(nlevs - 1), 3], dig = 2),
-    "-", fn(mod$conf.int[1:(nlevs - 1), 4], dig = 2), "), ",
-    fn(mod$coef[1:(nlevs - 1), 5], dig = 3, p = TRUE)
-  ))
+    out[2, 3:(nlevs + 2)] <- c("ref", paste0(
+      fn(mod$conf.int[1:(nlevs - 1), 1], dig = 2),
+      " (", fn(mod$conf.int[1:(nlevs - 1), 3], dig = 2),
+      "-", fn(mod$conf.int[1:(nlevs - 1), 4], dig = 2), "), ",
+      fn(mod$coef[1:(nlevs - 1), 5], dig = 3, p = TRUE)
+    ))
+
+    ## adjusted index value
+    out[3, 2] <- "Adj index value HR (95% CI), p-value"
+
+    mod <- summary(coxph(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", changevar, " + scream_ntprobnp")),
+      data = data
+    ))
+
+    out[3, 3:(nlevs + 2)] <- c("ref", paste0(
+      fn(mod$conf.int[1:(nlevs - 1), 1], dig = 2),
+      " (", fn(mod$conf.int[1:(nlevs - 1), 3], dig = 2),
+      "-", fn(mod$conf.int[1:(nlevs - 1), 4], dig = 2), "), ",
+      fn(mod$coef[1:(nlevs - 1), 5], dig = 3, p = TRUE)
+    ))
+
+    ## adjusted 6 mo value
+    out[4, 2] <- "Adj 6 mo value HR (95% CI), p-value"
+
+    mod <- summary(coxph(formula(paste0("Surv(", time, ",", event, "=='Yes') ~ ", changevar, " + scream_ntprobnp6mopost")),
+      data = data
+    ))
+
+    out[4, 3:(nlevs + 2)] <- c("ref", paste0(
+      fn(mod$conf.int[1:(nlevs - 1), 1], dig = 2),
+      " (", fn(mod$conf.int[1:(nlevs - 1), 3], dig = 2),
+      "-", fn(mod$conf.int[1:(nlevs - 1), 4], dig = 2), "), ",
+      fn(mod$coef[1:(nlevs - 1), 5], dig = 3, p = TRUE)
+    ))
+  }
   return(out)
 }
 
@@ -94,10 +124,10 @@ survfunc2 <- function(data2, changevar2, tabname) {
     tabname, "_", Sys.Date(), ".xlsx"
   ), rowNames = FALSE, overwrite = TRUE)
 
-  default_kable(outall,
+  footnote(default_kable(outall,
     font_size = 6,
     caption = paste0("Association between change in NT-proBNP (index to post) and outcomes - ", tabname)
-  )
+  ), general = "HR only calculated if there are > 4 events in each group.")
 }
 
 # 4 groups
@@ -105,54 +135,26 @@ survfunc2 <- function(data2, changevar2, tabname) {
 survfunc2(data2 = rsdata, changevar2 = "scream_ntprobnpstablepost", tabname = "Overall 4 change groups")
 
 survfunc2(
-  data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), 
+  data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"),
   changevar2 = "scream_ntprobnpstablepost", tabname = "HFrEF 4 change groups"
 )
 
 survfunc2(
-  data2 = rsdata %>% filter(whfe == "WHFE"), 
+  data2 = rsdata %>% filter(whfe == "WHFE"),
   changevar2 = "scream_ntprobnpstablepost", tabname = "WHFE 4 change groups"
 )
 survfunc2(
-  data2 = rsdata %>% filter(whfe == "NWHFE"), 
+  data2 = rsdata %>% filter(whfe == "NWHFE"),
   changevar2 = "scream_ntprobnpstablepost", tabname = "NWHFE 4 change groups"
 )
 
 
 survfunc2(
-  data2 = rsdata %>% filter(whfe == "WHFE" & shf_ef_cat == "HFrEF"), 
+  data2 = rsdata %>% filter(whfe == "WHFE" & shf_ef_cat == "HFrEF"),
   changevar2 = "scream_ntprobnpstablepost", tabname = "WHFE HFrEF 4 change groups"
 )
 survfunc2(
-  data2 = rsdata %>% filter(whfe == "NWHFE" & shf_ef_cat == "HFrEF"), 
+  data2 = rsdata %>% filter(whfe == "NWHFE" & shf_ef_cat == "HFrEF"),
   changevar2 = "scream_ntprobnpstablepost", tabname = "NWHFE HFrEF 4 change groups"
-)
-
-# 3 groups
-
-survfunc2(data2 = rsdata, changevar2 = "scream_ntprobnpstablepost2", tabname = "Overall 3 change groups")
-
-survfunc2(
-  data2 = rsdata %>% filter(shf_ef_cat == "HFrEF"), 
-  changevar2 = "scream_ntprobnpstablepost2", tabname = "HFrEF 3 change groups"
-)
-
-survfunc2(
-  data2 = rsdata %>% filter(whfe == "WHFE"), 
-  changevar2 = "scream_ntprobnpstablepost2", tabname = "WHFE 3 change groups"
-)
-survfunc2(
-  data2 = rsdata %>% filter(whfe == "NWHFE"), 
-  changevar2 = "scream_ntprobnpstablepost2", tabname = "NWHFE 3 change groups"
-)
-
-
-survfunc2(
-  data2 = rsdata %>% filter(whfe == "WHFE" & shf_ef_cat == "HFrEF"), 
-  changevar2 = "scream_ntprobnpstablepost2", tabname = "WHFE HFrEF 3 change groups"
-)
-survfunc2(
-  data2 = rsdata %>% filter(whfe == "NWHFE" & shf_ef_cat == "HFrEF"), 
-  changevar2 = "scream_ntprobnpstablepost2", tabname = "NWHFE HFrEF 3 change groups"
 )
 ```

@@ -5,7 +5,7 @@
 rsdata <- rsdata %>%
   mutate(
     sos_location2 = factor(case_when(
-      sos_location %in% c("HF out-patient", "Other out-patient") ~ 1,
+      sos_location %in% c("Out-patient") ~ 1,
       sos_location %in% c("HF in-patient", "Other in-patient") ~ 2
     ),
     levels = 1:2, labels = c("Out-patient", "In-patient")
@@ -150,28 +150,7 @@ rsdata <- rsdata %>%
       levels = 1:4,
       labels = c("Stable low", "Decreased", "Increased", "Stable high")
     ),
-    diff_ntprobnpprior = (scream_ntprobnp - scream_ntprobnp6moprior) / scream_ntprobnp6moprior,
-    diff_ntprobnppost = (scream_ntprobnp6mopost - scream_ntprobnp) / scream_ntprobnp,
-    scream_ntprobnpstableprior2 = factor(
-      case_when(
-        is.na(diff_ntprobnpprior) ~ NA_real_,
-        diff_ntprobnpprior <= -0.2 ~ 2,
-        diff_ntprobnpprior < 0.2 ~ 1,
-        diff_ntprobnpprior >= 0.2 ~ 3
-      ),
-      levels = 1:3,
-      labels = c("Stable", "Decreased", "Increased")
-    ),
-    scream_ntprobnpstablepost2 = factor(
-      case_when(
-        is.na(diff_ntprobnppost) ~ NA_real_,
-        diff_ntprobnppost <= -0.2 ~ 2,
-        diff_ntprobnppost < 0.2 ~ 1,
-        diff_ntprobnppost >= 0.2 ~ 3
-      ),
-      levels = 1:3,
-      labels = c("Stable", "Decreased", "Increased")
-    ),
+    diff_ntprobnppost = (scream_ntprobnp6mopost - scream_ntprobnp) / scream_ntprobnp * 100,
     shf_sos_com_af = case_when(
       sos_com_af == "Yes" |
         shf_af == "Yes" |

@@ -60,16 +60,77 @@ funcconc <- function(data, tabname) {
   both <- both %>%
     pivot_wider(names_from = whfe, values_from = ds)
 
-  write.xlsx(both, paste0("./output/tabs/NT-proBNP concentrations at index (2 weeks) - ", tabname, "_", Sys.Date(), ".xlsx"),
+  write.xlsx(both, paste0("./output/tabs/NT-proBNP concentrations at index - ", tabname, "_", Sys.Date(), ".xlsx"),
     rowNames = FALSE, overwrite = TRUE
   )
 
   default_kable(both,
-    caption = paste0("NT-proBNP concentrations at index (+/- 2 weeks) - ", tabname),
+    caption = paste0("NT-proBNP concentrations at index - ", tabname),
     escape = TRUE
   )
 }
 
 funcconc(rsdata, tabname = "Overall")
 funcconc(rsdata %>% filter(shf_ef_cat == "HFrEF"), "HFrEF")
+```
+
+```{r concntplotall, cache=cacheon, fig.cap = "NT-proBNP concentrations at index - Overall", fig.width=9, fig.height=6}
+
+ploth <- rsdata %>%
+  filter(scream_nttest == "Yes") %>%
+  mutate(group = 1)
+
+ploth2 <- rsdata %>%
+  filter(scream_nttest == "Yes") %>%
+  mutate(group = case_when(
+    whfe == "WHFE" ~ 2,
+    whfe == "NWHFE" ~ 3
+  ))
+
+ploth3 <- bind_rows(ploth, ploth2)
+
+
+# c(bottom, left, top, right)
+par(mar = c(2, 5, .5, .5) + 0.1)
+
+b <- boxplot(scream_ntprobnp ~ group,
+  data = ploth3, ylim = c(0, 30000), col = global_colsblue[c(2, 4, 6)],
+  ylab = "", xlab = "", axes = F
+)
+
+axis(2, las = 2)
+axis(1, at = c(1, 2, 3), c("Overall", "WHFE", "NWHFE"), tick = F)
+
+mtext("NT-proBNP concentrations", side = 2, line = 4, at = 15000)
+```
+
+
+```{r concntplotref, cache=cacheon, fig.cap = "NT-proBNP concentrations at index - HFrEF", fig.width=9, fig.height=6}
+
+ploth <- rsdata %>%
+  filter(scream_nttest == "Yes" & shf_ef_cat == "HFrEF") %>%
+  mutate(group = 1)
+
+ploth2 <- rsdata %>%
+  filter(scream_nttest == "Yes" & shf_ef_cat == "HFrEF") %>%
+  mutate(group = case_when(
+    whfe == "WHFE" ~ 2,
+    whfe == "NWHFE" ~ 3
+  ))
+
+ploth3 <- bind_rows(ploth, ploth2)
+
+
+# c(bottom, left, top, right)
+par(mar = c(2, 5, .5, .5) + 0.1)
+
+b <- boxplot(scream_ntprobnp ~ group,
+  data = ploth3, ylim = c(0, 30000), col = global_colsblue[c(2, 4, 6)],
+  ylab = "", xlab = "", axes = F
+)
+
+axis(2, las = 2)
+axis(1, at = c(1, 2, 3), c("Overall", "WHFE", "NWHFE"), tick = F)
+
+mtext("NT-proBNP concentrations", side = 2, line = 4, at = 15000)
 ```

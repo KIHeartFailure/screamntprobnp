@@ -80,14 +80,4 @@ logregfunc(
   data = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar = "scream_ntprobnpstableprior",
   tabname = "HFrEF 4 change groups"
 )
-
-logregfunc(
-  data = rsdata, changevar = "scream_ntprobnpstableprior2",
-  tabname = "Overall 3 change groups"
-)
-
-logregfunc(
-  data = rsdata %>% filter(shf_ef_cat == "HFrEF"), changevar = "scream_ntprobnpstableprior2",
-  tabname = "HFrEF 3 change groups"
-)
 ```

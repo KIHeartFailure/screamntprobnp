@@ -31,8 +31,8 @@ trendfunc <- function(timestart, timestop, timename, data) {
   tmplab2_all <- tmplab2 %>%
     count(nt) %>%
     mutate(
-      per = paste0(fn(n / sum(n) * 100, 1), "%"),
-      ntot = paste0(n, "/", sum(n), " (", per, ")"),
+      per = n / sum(n) * 100,
+      ntot = paste0(n, "/", sum(n), " (", fn(per, 1), "%)"),
       "Time point" = timename,
       whfe = "Overall"
     ) %>%
@@ -42,8 +42,8 @@ trendfunc <- function(timestart, timestop, timename, data) {
     group_by(whfe) %>%
     count(nt) %>%
     mutate(
-      per = paste0(fn(n / sum(n) * 100, 1), "%"),
-      ntot = paste0(n, "/", sum(n), " (", per, ")"),
+      per = n / sum(n) * 100,
+      ntot = paste0(n, "/", sum(n), " (", fn(per, 1), "%)"),
       "Time point" = timename
     ) %>%
     ungroup() %>%
@@ -53,14 +53,14 @@ trendfunc <- function(timestart, timestop, timename, data) {
 }
 
 trendfunc2 <- function(data2, popname) {
-  trend <- trendfunc(timestart = -90, timestop = -1, timename = "90-1 days prior to index", data = data2)
-  trend <- rbind(trend, trendfunc(-60, -1, "60-1 days prior to index", data2))
-  trend <- rbind(trend, trendfunc(-30, -1, "30-1 days prior to index", data2))
-  trend <- rbind(trend, trendfunc(-14, -1, "14-1 days prior to index", data2))
-  trend <- rbind(trend, trendfunc(0, 14, "0-14 days post index", data2))
-  trend <- rbind(trend, trendfunc(0, 30, "0-30 days post index", data2))
-  trend <- rbind(trend, trendfunc(0, 60, "0-60 days post index", data2))
-  trend <- rbind(trend, trendfunc(0, 90, "0-90 days post index", data2))
+  trend <- trendfunc(timestart = -90, timestop = 0, timename = "90-0 days prior to index", data = data2)
+  trend <- rbind(trend, trendfunc(-60, 0, "60-0 days prior to index", data2))
+  trend <- rbind(trend, trendfunc(-30, 0, "30-0 days prior to index", data2))
+  trend <- rbind(trend, trendfunc(-14, 0, "14-0 days prior to index", data2))
+  trend <- rbind(trend, trendfunc(1, 14, "1-14 days post index", data2))
+  trend <- rbind(trend, trendfunc(1, 30, "1-30 days post index", data2))
+  trend <- rbind(trend, trendfunc(1, 60, "1-60 days post index", data2))
+  trend <- rbind(trend, trendfunc(1, 90, "1-90 days post index", data2))
 
   trend <- trend %>%
     select(whfe, `Time point`, ntot) %>%
@@ -82,5 +82,54 @@ trendfunc2 <- function(data2, popname) {
 }
 
 trendfunc2(data2 = rsdata, "Overall")
+
 trendfunc2(rsdata %>% filter(shf_ef_cat == "HFrEF"), "HFrEF")
 ```
+
+```{r freq306090ntplot, cache = cacheon, dependson="freq306090nt", fig.cap = "NT-proBNP testing within 14, 30, 60 and 90 days before and after the index date", fig.show='hold', out.width="33%", fig.ncol=3, fig.subcap=c('Overall population Overall', 'Overall population WHFE', 'Overall population NWHFE', 'HFrEF Overall', 'HFrEF WHFE', 'HFrEF NWHFE')}
+
+trendplot <- function(dataplot) {
+  dataplot <- dataplot %>%
+    mutate(row = 1:n()) %>%
+    arrange(desc(row))
+
+  dataplot$`Time point` <- forcats::fct_reorder(dataplot$`Time point`, dataplot$row)
+
+  cexmy <- 1.1
+  par(mar = c(4, 11, .5, 1) + 0.1)
+  b <- barplot(dataplot %>% pull(per) ~ dataplot %>% pull(`Time point`),
+    col = c(rep(global_colsblue[2], 4), rep(global_colsblue[6], 4)),
+    horiz = TRUE, xlab = "Percent", ylab = "", cex.lab = cexmy,
+    border = "white", axes = F, xlim = c(0, 100), names.arg = NA
+  )
+
+  axis(1, seq(0, 100, 20), cex.axis = cexmy)
+  axis(2, at = b, labels = dataplot$`Time point`, line = 0, tick = FALSE, cex.axis = cexmy, las = 2, gap.axis = -10000000)
+}
+
+trend1 <- trendfunc(timestart = -90, timestop = 0, timename = "90-0 days prior to index", data = rsdata)
+trend1 <- rbind(trend1, trendfunc(-60, 0, "60-0 days prior to index", rsdata))
+trend1 <- rbind(trend1, trendfunc(-30, 0, "30-0 days prior to index", rsdata))
+trend1 <- rbind(trend1, trendfunc(-14, 0, "14-0 days prior to index", rsdata))
+trend1 <- rbind(trend1, trendfunc(1, 14, "1-14 days post index", rsdata))
+trend1 <- rbind(trend1, trendfunc(1, 30, "1-30 days post index", rsdata))
+trend1 <- rbind(trend1, trendfunc(1, 60, "1-60 days post index", rsdata))
+trend1 <- rbind(trend1, trendfunc(1, 90, "1-90 days post index", rsdata))
+
+trend2 <- trendfunc(timestart = -90, timestop = 0, timename = "90-0 days prior to index", data = rsdata %>% filter(shf_ef_cat == "HFrEF"))
+trend2 <- rbind(trend2, trendfunc(-60, 0, "60-0 days prior to index", rsdata %>% filter(shf_ef_cat == "HFrEF")))
+trend2 <- rbind(trend2, trendfunc(-30, 0, "30-0 days prior to index", rsdata %>% filter(shf_ef_cat == "HFrEF")))
+trend2 <- rbind(trend2, trendfunc(-14, 0, "14-0 days prior to index", rsdata %>% filter(shf_ef_cat == "HFrEF")))
+trend2 <- rbind(trend2, trendfunc(1, 14, "0-14 days post index", rsdata %>% filter(shf_ef_cat == "HFrEF")))
+trend2 <- rbind(trend2, trendfunc(1, 30, "0-30 days post index", rsdata %>% filter(shf_ef_cat == "HFrEF")))
+trend2 <- rbind(trend2, trendfunc(1, 60, "0-60 days post index", rsdata %>% filter(shf_ef_cat == "HFrEF")))
+trend2 <- rbind(trend2, trendfunc(1, 90, "0-90 days post index", rsdata %>% filter(shf_ef_cat == "HFrEF")))
+
+trendplot(dataplot = trend1 %>% filter(whfe == "Overall"))
+trendplot(trend1 %>% filter(whfe == "WHFE"))
+trendplot(trend1 %>% filter(whfe == "NWHFE"))
+
+trendplot(dataplot = trend2 %>% filter(whfe == "Overall"))
+trendplot(trend2 %>% filter(whfe == "WHFE"))
+trendplot(trend2 %>% filter(whfe == "NWHFE"))
+```             

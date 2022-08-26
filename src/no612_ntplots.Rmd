@@ -1,0 +1,405 @@
+```{r no612ntkernal, cache=cacheon}
+
+tmplab <- left_join(rsdata %>% select(LopNr, shf_indexdtm),
+  labnt,
+  by = "LopNr"
+) %>%
+  mutate(
+    tmptiment = as.numeric(labdtm - shf_indexdtm),
+    nt = 1
+  ) %>%
+  filter(tmptiment >= 0 & tmptiment <= 365 * 2)
+```
+
+```{r no612ntkernalall, cache=cacheon, fig.cap = "Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient - Overall"}
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 / 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata,
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 / 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk11 <- density(tmplab21 %>% pull(n), bw = 0.5)
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata,
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk12 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 * 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata,
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 * 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+dk13 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+plot(
+  y = dk11$y, x = dk11$x, type = "l", col = global_colsblue[1], lwd = 2, xlim = c(0, 20), ylab = "Density",
+  ylim = c(0, 0.5), xlab = "Number of NT-proBNP tests", axes = F, xaxs = "i", yaxs = "i"
+)
+matplot(y = dk12$y, x = dk12$x, type = "l", col = global_colsblue[3], lwd = 2, add = T)
+matplot(y = dk13$y, x = dk13$x, type = "l", col = global_colsblue[6], lwd = 2, add = T)
+axis(1)
+axis(2, las = 2)
+legend("topright", c("Within 6 months", "Within 1 year", "Within 2 years"), col = global_colsblue[c(1, 3, 6)], bty = "n", lty = 1, lwd = 2)
+```
+
+```{r no612ntkernalwhfe, cache=cacheon, fig.cap = "Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient -  WHFE"}
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 / 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "WHFE"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 / 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk11 <- density(tmplab21 %>% pull(n), bw = 0.5)
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "WHFE"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk12 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 * 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "WHFE"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 * 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+dk13 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+plot(
+  y = dk11$y, x = dk11$x, type = "l", col = global_colsblue[1], lwd = 2, xlim = c(0, 20), ylab = "Density",
+  ylim = c(0, 0.5), xlab = "Number of NT-proBNP tests", axes = F, xaxs = "i", yaxs = "i"
+)
+matplot(y = dk12$y, x = dk12$x, type = "l", col = global_colsblue[3], lwd = 2, add = T)
+matplot(y = dk13$y, x = dk13$x, type = "l", col = global_colsblue[6], lwd = 2, add = T)
+axis(1)
+axis(2, las = 2)
+legend("topright", c("Within 6 months", "Within 1 year", "Within 2 years"), col = global_colsblue[c(1, 3, 6)], bty = "n", lty = 1, lwd = 2)
+```
+
+
+```{r no612ntkernalnwhfe, cache=cacheon, fig.cap = "Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient -   NWHFE"}
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 / 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "NWHFE"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 / 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk11 <- density(tmplab21 %>% pull(n), bw = 0.5)
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "NWHFE"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk12 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 * 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "NWHFE"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 * 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+dk13 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+plot(
+  y = dk11$y, x = dk11$x, type = "l", col = global_colsblue[1], lwd = 2, xlim = c(0, 20), ylab = "Density",
+  ylim = c(0, 0.5), xlab = "Number of NT-proBNP tests", axes = F, xaxs = "i", yaxs = "i"
+)
+matplot(y = dk12$y, x = dk12$x, type = "l", col = global_colsblue[3], lwd = 2, add = T)
+matplot(y = dk13$y, x = dk13$x, type = "l", col = global_colsblue[6], lwd = 2, add = T)
+axis(1)
+axis(2, las = 2)
+legend("topright", c("Within 6 months", "Within 1 year", "Within 2 years"), col = global_colsblue[c(1, 3, 6)], bty = "n", lty = 1, lwd = 2)
+```
+
+
+```{r no612ntkernalallref, cache=cacheon, fig.cap = "Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient - Overall - HFrEF"}
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 / 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 / 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk11 <- density(tmplab21 %>% pull(n), bw = 0.5)
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk12 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 * 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 * 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+dk13 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+plot(
+  y = dk11$y, x = dk11$x, type = "l", col = global_colsblue[1], lwd = 2, xlim = c(0, 20), ylab = "Density",
+  ylim = c(0, 0.5), xlab = "Number of NT-proBNP tests", axes = F, xaxs = "i", yaxs = "i"
+)
+matplot(y = dk12$y, x = dk12$x, type = "l", col = global_colsblue[3], lwd = 2, add = T)
+matplot(y = dk13$y, x = dk13$x, type = "l", col = global_colsblue[6], lwd = 2, add = T)
+axis(1)
+axis(2, las = 2)
+legend("topright", c("Within 6 months", "Within 1 year", "Within 2 years"), col = global_colsblue[c(1, 3, 6)], bty = "n", lty = 1, lwd = 2)
+```
+
+```{r no612ntkernalwhferef, cache=cacheon, fig.cap = "Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient -  WHFE - HFrEF"}
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 / 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "WHFE" & shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 / 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk11 <- density(tmplab21 %>% pull(n), bw = 0.5)
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "WHFE" & shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk12 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 * 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "WHFE" & shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 * 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+dk13 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+plot(
+  y = dk11$y, x = dk11$x, type = "l", col = global_colsblue[1], lwd = 2, xlim = c(0, 20), ylab = "Density",
+  ylim = c(0, 0.5), xlab = "Number of NT-proBNP tests", axes = F, xaxs = "i", yaxs = "i"
+)
+matplot(y = dk12$y, x = dk12$x, type = "l", col = global_colsblue[3], lwd = 2, add = T)
+matplot(y = dk13$y, x = dk13$x, type = "l", col = global_colsblue[6], lwd = 2, add = T)
+axis(1)
+axis(2, las = 2)
+legend("topright", c("Within 6 months", "Within 1 year", "Within 2 years"), col = global_colsblue[c(1, 3, 6)], bty = "n", lty = 1, lwd = 2)
+```
+
+
+```{r no612ntkernalnwhferef, cache=cacheon, fig.cap = "Number of NT-proBNP testing in the first 6 months, 1st and 2nd year after the index date per patient -   NWHFE - HFrEF"}
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 / 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "NWHFE" & shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 / 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk11 <- density(tmplab21 %>% pull(n), bw = 0.5)
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "NWHFE" & shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365
+  ) %>%
+  mutate(n = replace_na(n, 0))
+
+dk12 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+tmplab2 <- tmplab %>%
+  filter(tmptiment <= 365 * 2) %>%
+  group_by(LopNr) %>%
+  count() %>%
+  ungroup() %>%
+  select(LopNr, n)
+
+tmplab21 <- left_join(rsdata %>% filter(whfe == "NWHFE" & shf_ef_cat == "HFrEF"),
+  tmplab2,
+  by = "LopNr"
+) %>%
+  filter(
+    sos_outtime_death >= 365 * 2
+  ) %>%
+  mutate(n = replace_na(n, 0))
+dk13 <- density(tmplab21 %>% pull(n), bw = 0.5)
+
+plot(
+  y = dk11$y, x = dk11$x, type = "l", col = global_colsblue[1], lwd = 2, xlim = c(0, 20), ylab = "Density",
+  ylim = c(0, 0.5), xlab = "Number of NT-proBNP tests", axes = F, xaxs = "i", yaxs = "i"
+)
+matplot(y = dk12$y, x = dk12$x, type = "l", col = global_colsblue[3], lwd = 2, add = T)
+matplot(y = dk13$y, x = dk13$x, type = "l", col = global_colsblue[6], lwd = 2, add = T)
+axis(1)
+axis(2, las = 2)
+legend("topright", c("Within 6 months", "Within 1 year", "Within 2 years"), col = global_colsblue[c(1, 3, 6)], bty = "n", lty = 1, lwd = 2)
+```
