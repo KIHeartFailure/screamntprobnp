@@ -90,7 +90,7 @@ trendfunc2(rsdata %>% filter(shf_ef_cat == "HFrEF"), "HFrEF")
 
 trendplot <- function(dataplot) {
   dataplot <- dataplot %>%
-    mutate(row = 1:n()) %>%
+    mutate(row = n():1) %>%
     arrange(desc(row))
 
   dataplot$`Time point` <- forcats::fct_reorder(dataplot$`Time point`, dataplot$row)
@@ -104,7 +104,17 @@ trendplot <- function(dataplot) {
   )
 
   axis(1, seq(0, 100, 20), cex.axis = cexmy)
-  axis(2, at = b, labels = dataplot$`Time point`, line = 0, tick = FALSE, cex.axis = cexmy, las = 2, gap.axis = -10000000)
+  axis(2,
+    at = b, labels = dataplot %>% arrange(`Time point`) %>% pull(`Time point`),
+    line = 0, tick = FALSE, cex.axis = cexmy, las = 2, gap.axis = -10000000
+  )
+
+  text(
+    y = c(b), x = dataplot %>% arrange(`Time point`) %>% pull(per),
+    pos = 4,
+    label = paste0(fn(dataplot %>% arrange(`Time point`) %>% pull(per), 1), "%"),
+    cex = cexmy
+  )
 }
 
 trend1 <- trendfunc(timestart = -90, timestop = 0, timename = "90-0 days prior to index", data = rsdata)

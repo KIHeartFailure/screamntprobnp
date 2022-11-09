@@ -24,7 +24,7 @@ predfunc <- function(impdata, tabname, nomultvar = NULL, nounivar = NULL) {
     p = fn(sormod$p.value[2:nval], dig = 3, p = TRUE)
   ) %>%
     mutate(orci = paste0(fn(exp(logor), 2), " (", fn(exp(lci), 2), "-", fn(exp(uci), 2), ")")) %>%
-    select(Variable, orci, p)
+    select(Variable, logor, lci, uci, orci, p)
 
   # crude
   for (i in seq_along(tmpmodvars)) {
@@ -43,7 +43,7 @@ predfunc <- function(impdata, tabname, nomultvar = NULL, nounivar = NULL) {
       p = fn(sormoduni$p.value[2:nval], dig = 3, p = TRUE)
     ) %>%
       mutate(orci = paste0(fn(exp(logor), 2), " (", fn(exp(lci), 2), "-", fn(exp(uci), 2), ")")) %>%
-      select(Variable, orci, p)
+      select(Variable, logor, lci, uci, orci, p)
 
     if (i == 1) {
       predsuni <<- predsunitmp
@@ -53,24 +53,157 @@ predfunc <- function(impdata, tabname, nomultvar = NULL, nounivar = NULL) {
   }
 
   predall <- full_join(predsuni, preds, by = "Variable")
-  colnames(predall) <- c("Variable", rep(c("OR (95% CI)", "p-value"), 2))
 
-  write.xlsx(predall, paste0("./output/tabs/Predictors of NT-proBNP testing - ", tabname, 
-                             "_", Sys.Date(), ".xlsx"), rowNames = FALSE, overwrite = TRUE)
+  predall <- predall %>%
+    mutate(Variable = case_when(
+      Variable == "shf_sexMale" ~ "Male vs Female",
+      Variable == "shf_age_cat>=75" ~ "Age (years) \u226575 vs < 75",
+      Variable == "shf_indexyear_cat2015-2018" ~ "Index year 2015-2018 vs 2011-2014",
+      Variable == "shf_ef_catHFmrEF" ~ "EF (%) mrEF vs rEF",
+      Variable == "shf_ef_catHFpEF" ~ "EF (%) pEF vs rEF",
+      Variable == "shf_nyha_catIII-IV" ~ "NYHA class III-IV vs I-II",
+      Variable == "shf_map_cat>90" ~ "MAP >90 vs \u226490",
+      Variable == "shf_heartrate_cat>70" ~ "Heart rate (beats/min) >70 vs \u226470",
+      Variable == "scream_anemiaYes" ~ "Anemia",
+      Variable == "scream_gfrckdepi_cat>30-<60" ~ "eGFR (mL/min/1.73 m²) 31-59 vs \u226430",
+      Variable == "scream_gfrckdepi_cat>=60" ~ "eGFR (mL/min/1.73 m²) \u226560 vs \u226430",
+      Variable == "shf_smoking_catYes" ~ "Smoking",
+      Variable == "shf_sos_com_diabetesYes" ~ "Diabetes",
+      Variable == "shf_sos_com_afYes" ~ "Atrial fibrillation/flutter",
+      Variable == "shf_sos_com_ihdYes" ~ "Ischemic heart disease",
+      Variable == "shf_sos_com_hypertensionYes" ~ "Hypertension",
+      Variable == "sos_com_stroketiaYes" ~ "Stroke/TIA",
+      Variable == "shf_sos_com_valvularYes" ~ "Valvular disease",
+      Variable == "sos_com_liverYes" ~ "Liver disease",
+      Variable == "sos_com_cancer3yYes" ~ "Malignant cancer",
+      Variable == "sos_com_muscoloskeletal3yYes" ~ "Muscoloskeletal diseases",
+      Variable == "sos_com_copdYes" ~ "COPD",
+      Variable == "shf_rasarniYes" ~ "RASi/ARNi",
+      Variable == "shf_bblYes" ~ "Beta-blocker",
+      Variable == "shf_mraYes" ~ "MRA",
+      Variable == "shf_diureticYes" ~ "Diuretic",
+      Variable == "shf_device_catCRT/ICD" ~ "CRT/ICD",
+      Variable == "shf_digoxinYes" ~ "Digoxin",
+      Variable == "shf_asaantiplateletYes" ~ "Platelet inhibitor",
+      Variable == "shf_anticoagulantiaYes" ~ "Oral anticoagulant*",
+      Variable == "shf_statinYes" ~ "Statin",
+      Variable == "shf_nitrateYes" ~ "Nitrate",
+      Variable == "shf_followuphfunitYes" ~ "Follow-up HF nurse clinic",
+      Variable == "shf_followuplocation_catPrimary care/Other" ~ "Follow-up Primary care/Other vs Hospital",
+      Variable == "scb_famLiving alone" ~ "Living alone vs Cohabitating",
+      Variable == "scb_education_catUniversity" ~ "Education University vs No university",
+      Variable == "scb_dispincome_cat2Above medium" ~ "Income Above vs Below median",
+      Variable == "whfeNWHFE" ~ "NWHF vs WHFE"
+    ))
 
-  default_kable(predall,
-    font_size = 6,
-    caption = paste0("Predictors of NT-proBNP testing - ", tabname),
-    longtable = TRUE,
-    escape = TRUE
-  ) %>%
-    add_header_above(c(" " = 1, "Crude" = 2, "Adjusted" = 2))
+  predallprint <- predall %>%
+    select(Variable, orci.x, p.x, orci.y, p.y)
+  colnames(predallprint) <- c("Variable", rep(c("OR (95% CI)", "p-value"), 2))
+
+  write.xlsx(predallprint, paste0(
+    "./output/tabs/Predictors of NT-proBNP testing - ", tabname,
+    "_", Sys.Date(), ".xlsx"
+  ), rowNames = FALSE, overwrite = TRUE)
+
+  return(list(predall = predall, predallprint = predallprint, tabname = tabname))
+}
+
+predforest <- function(data, minmy, maxmy) {
+  predplot <- data %>%
+    filter(!is.na(logor.y)) %>%
+    arrange(logor.y) %>%
+    mutate(order = n():1)
+  cextext <- 0.8
+
+  # c(bottom, left, top, right)
+  par(mar = c(3, 20.5, 1, 1) + 0.2)
+
+  plot(predplot$logor.y, predplot$order,
+    cex = 1,
+    xlim = c(
+      log(minmy),
+      log(maxmy)
+    ),
+    xlab = "",
+    cex.lab = cextext,
+    ylim = c(1, max(predplot$order) + .4),
+    axes = FALSE,
+    ylab = NA,
+    main = NA,
+    type = "p",
+    pch = 22,
+    bg = global_colsblue[3],
+    col = global_colsblue[3],
+    xaxs = "i"
+  )
+
+  segments(
+    x0 = predplot$lci.y,
+    x1 = predplot$uci.y,
+    y0 = predplot$order,
+    col = global_colsblue[3],
+    lwd = 2
+  )
+
+  # lower
+  segments(
+    x0 = predplot$lci.y,
+    y0 = predplot$order - 0.15,
+    y1 = predplot$order + 0.15,
+    col = global_colsblue[3],
+    lwd = 2
+  )
+  # upper
+  segments(
+    x0 = predplot$uci.y,
+    y0 = predplot$order - 0.15,
+    y1 = predplot$order + 0.15,
+    col = global_colsblue[3],
+    lwd = 2
+  )
+
+  matplot(c(log(1), log(1)), c(-1, max(predplot$order)), type = "l", lwd = 1, lty = 3, add = TRUE, col = 1)
+
+  axismy <- seq(minmy, maxmy, 0.1)
+  axismy2 <- axismy
+  axismy2[!axismy %in% c(minmy, maxmy)] <- NA
+
+  axis(1,
+    cex.axis = cextext, at = log(axismy),
+    labels = axismy2
+  )
+  axis(1,
+    cex.axis = cextext, at = log(1),
+    labels = 1
+  )
+
+  axis(2,
+    at = predplot$order,
+    labels = predplot$Variable,
+    cex.axis = cextext, tick = FALSE, las = 2, line = 19.5, hadj = 0
+  )
+
+  axis(2,
+    at = nrow(predplot) + 1,
+    labels = "OR (95% CI), p-value",
+    cex.axis = cextext, tick = FALSE, las = 2, line = 3, hadj = 0.5, font = 2
+  )
+  axis(2,
+    at = predplot$order,
+    labels = paste0(predplot$orci.y, ", ", predplot$p.y),
+    cex.axis = cextext, tick = FALSE, las = 2, line = 3, hadj = 0.5
+  )
+
+  axis(1,
+    at = (log(maxmy) + log(minmy)) / 2, cex.axis = cextext,
+    labels = "OR (95% CI)", line = 1, tick = FALSE
+  )
 }
 ```
 
 ```{r predall, dependson="pred", cache=cacheon}
-predfunc(impdata = imprsdata, tabname = "Overall", nomultvar = c(
-  "shf_map_cat", "shf_bmi_cat", "scream_anemia", "scream_sodium_cat", 
+predall <- predfunc(impdata = imprsdata, tabname = "Overall", nomultvar = c(
+  "shf_map_cat", "shf_bmi_cat", "scream_anemia", "scream_sodium_cat",
   "shf_smoking_cat", "shf_sos_com_ihd",
   "sos_com_peripheralartery", "sos_com_stroketia",
   "sos_com_liver", "sos_com_cancer3y", "sos_com_muscoloskeletal3y",
@@ -78,6 +211,19 @@ predfunc(impdata = imprsdata, tabname = "Overall", nomultvar = c(
   "shf_bbl", "shf_mra",
   "shf_digoxin", "shf_asaantiplatelet", "shf_anticoagulantia"
 ))
+
+default_kable(predall$predallprint,
+  font_size = 6,
+  caption = paste0("Predictors of NT-proBNP testing - ", predall$tabname),
+  longtable = TRUE,
+  escape = TRUE
+) %>%
+  add_header_above(c(" " = 1, "Crude" = 2, "Adjusted" = 2))
+```
+
+```{r predallforest, cache=cacheon, dependson=c("pred", "predall"), fig.cap=" Predictors of NT-proBNP testing - Overall", fig.width=6, fig.height=8}
+
+predforest(data = predall$predall, minmy = 0.2, maxmy = 2.1)
 ```
 
 \clearpage
@@ -86,15 +232,28 @@ predfunc(impdata = imprsdata, tabname = "Overall", nomultvar = c(
 ## Subsets of imputed data
 imp_ref <- subset_datlist(imprsdata, subset = c(rsdata$shf_ef_cat == "HFrEF"))
 
-predfunc(impdata = imp_ref, tabname = "HFrEF", nounivar = "shf_ef_cat", nomultvar = c(
+predef <- predfunc(impdata = imp_ref, tabname = "HFrEF", nounivar = "shf_ef_cat", nomultvar = c(
   "shf_sex", "shf_age_cat",
   "shf_bmi_cat", "scream_anemia",
   "scream_sodium_cat", "scream_potassium_cat",
   "shf_smoking_cat", "shf_sos_com_ihd",
-  "sos_com_stroketia", "shf_sos_com_valvular", "sos_com_liver", 
+  "sos_com_stroketia", "shf_sos_com_valvular", "sos_com_liver",
   "sos_com_cancer3y", "sos_com_muscoloskeletal3y",
   "sos_com_dementia", "sos_com_copd",
   "shf_bbl", "shf_mra", "shf_device_cat", "shf_asaantiplatelet", "shf_anticoagulantia",
   "scb_fam", "scb_dispincome_cat2"
 ))
+
+default_kable(predef$predallprint,
+  font_size = 6,
+  caption = paste0("Predictors of NT-proBNP testing - ", predall$tabname),
+  longtable = TRUE,
+  escape = TRUE
+) %>%
+  add_header_above(c(" " = 1, "Crude" = 2, "Adjusted" = 2))
+```
+
+```{r predrefforest, cache=cacheon, dependson=c("pred", "predref"), fig.cap=" Predictors of NT-proBNP testing - HFrEF", fig.width=6, fig.height=8}
+
+predforest(data = predef$predall, minmy = 0.1, maxmy = 2.1)
 ```
