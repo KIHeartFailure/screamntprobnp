@@ -153,7 +153,7 @@ tab1func <- function(data = rsdata, tabname) {
       "Source: KON/VAL",
       "Source: SCB",
       "Included in the multiple imputation model (althought not necessarily imputed if there is no missing data) and logistic/cox models.",
-      "Medium within index year"
+      "Median within index year"
     )
   )
 }

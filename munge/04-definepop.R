@@ -30,7 +30,7 @@ rsdata <- rsdata %>%
 flow <- rbind(flow, c("Exclude posts with index date > 2018-12-17", nrow(rsdata)))
 
 hf6m <- patreg %>%
-  mutate(hf = str_detect(DIA_all, " I110| I130| I132| I255| I420| I423| I425| I426| I427| I428| I429| I43| I50| J81| K761| R57")) %>%
+  mutate(hf = str_detect(DIA_all, " I110| I130| I132| I255| I420| I423| I425| I426| I427| I428| I429| I43| I50| J81| K761| R570")) %>%
   group_by(LopNr) %>%
   arrange(INDATUM) %>%
   slice(1) %>%
@@ -40,7 +40,7 @@ hf6m <- patreg %>%
 
 rsdata <- left_join(rsdata, hf6m, by = "LopNr") %>%
   filter(shf_indexdtm - 365 / 2 >= firsthfdtm)
-flow <- rbind(flow, c("Exclude posts without ICD-10 code (I110| I130| I132| I255| I420| I423| I425| I426| I427| I428| I429| I43| I50| J81| K761| R57)
+flow <- rbind(flow, c("Exclude posts without ICD-10 code (I110| I130| I132| I255| I420| I423| I425| I426| I427| I428| I429| I43| I50| J81| K761| R570)
                       diagnosis for HF > 6 months before", nrow(rsdata)))
 
 rsdata <- rsdata %>%
@@ -86,7 +86,7 @@ hf <- inner_join(
   mutate(
     tmpindexdtm = if_else(!is.na(shf_indexhosptime), shf_indexdtm - shf_indexhosptime, shf_indexdtm),
     diff = tmpindexdtm - INDATUM,
-    tmp_hfsos = stringr::str_detect(HDIA, " I110| I130| I132| I255| I420| I423| I425| I426| I427| I428| I429| I43| I50| J81| K761| R57")
+    tmp_hfsos = stringr::str_detect(HDIA, " I110| I130| I132| I255| I420| I423| I425| I426| I427| I428| I429| I43| I50| J81| K761| R570")
   )
 
 hfhosp <- hf %>%

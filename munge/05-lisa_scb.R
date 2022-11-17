@@ -31,7 +31,7 @@ rsdata <- left_join(
     ),
     scb_dispincome_cat2 = factor(scb_dispincome_cat2,
       levels = 1:2,
-      labels = c("Below medium", "Above medium")
+      labels = c("Below median", "Above median")
     )
   ) %>%
   select(-incmed)

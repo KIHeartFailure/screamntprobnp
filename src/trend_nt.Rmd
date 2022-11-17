@@ -94,10 +94,13 @@ trendfunc2 <- function(data2) {
     levels(rsdata %>% pull(whfe)),
     las = 1,
     cex = cexmy,
+    col = global_colsblue[c(3, 6)]
   )
 
-  text(trend$year[trend$whfe == "WHFE"], trend$per[trend$whfe == "WHFE"] + 1.5, trend$ntot[trend$whfe == "WHFE"], cex = cexmy)
-  text(trend$year[trend$whfe == "NWHFE"], trend$per[trend$whfe == "NWHFE"] - 1.5, trend$ntot[trend$whfe == "NWHFE"], cex = cexmy)
+  text(trend$year[trend$whfe == "WHFE"], trend$per[trend$whfe == "WHFE"] + 1.5, 
+       trend$ntot[trend$whfe == "WHFE"], cex = cexmy, col = global_colsblue[3])
+  text(trend$year[trend$whfe == "NWHFE"], trend$per[trend$whfe == "NWHFE"] - 1.5, 
+       trend$ntot[trend$whfe == "NWHFE"], cex = cexmy, col = global_colsblue[6])
 }
 ```
 

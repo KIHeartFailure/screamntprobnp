@@ -26,7 +26,6 @@ survfunc <- function(data, changevar, time, event, eventname) {
   ## incidence rate
   out[1, 2] <- "No events, sum py, incidence rate/100py (95% CI)"
 
-
   out[1, 3:(nlevs + 2)] <- paste0(
     ev$ev, ", ",
     fn(s$s, dig = 0), ", ",

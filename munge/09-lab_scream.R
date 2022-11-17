@@ -1,7 +1,11 @@
 
 # at index
 
-tmp_rsdatalab <- left_join(rsdata %>% select(LopNr, shf_indexdtm), lab_avg, by = "LopNr") %>%
+tmp_rsdatalab <- left_join(
+  rsdata %>% select(LopNr, shf_indexdtm),
+  lab_avg,
+  by = "LopNr"
+) %>%
   mutate(diff = as.numeric(shf_indexdtm - labdtm)) %>%
   filter(diff <= 14 & diff >= 0)
 
@@ -58,5 +62,3 @@ labfunc6mo <- function(start, stop, time, name) {
 
 labfunc6mo(start = -9 * 30.5, stop = -3 * 30.5, -6 * 30.5, name = "6moprior")
 labfunc6mo(start = 3 * 30.5, stop = 9 * 30.5, 6 * 30.5, name = "6mopost")
-#labfunc6mo(start = -3 * 30.5, stop = 0, -3 * 30.5, name = "3moprior")
-#labfunc6mo(start = 1, stop = 3 * 30.5, 3 * 30.5, name = "3mopost")

@@ -92,7 +92,7 @@ predfunc <- function(impdata, tabname, nomultvar = NULL, nounivar = NULL) {
       Variable == "shf_followuplocation_catPrimary care/Other" ~ "Follow-up Primary care/Other vs Hospital",
       Variable == "scb_famLiving alone" ~ "Living alone vs Cohabitating",
       Variable == "scb_education_catUniversity" ~ "Education University vs No university",
-      Variable == "scb_dispincome_cat2Above medium" ~ "Income Above vs Below median",
+      Variable == "scb_dispincome_cat2Above median" ~ "Income Above vs Below median",
       Variable == "whfeNWHFE" ~ "NWHF vs WHFE"
     ))
 

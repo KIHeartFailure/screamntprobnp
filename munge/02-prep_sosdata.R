@@ -74,7 +74,7 @@ svlink <- bind_rows(
 
 svopt <- svop %>%
   mutate(INDATUM = ymd(datum_c)) %>%
-  select(-datum_c, datum) %>%
+  select(-datum_c, -datum) %>%
   group_by(LopNr, INDATUM) %>%
   mutate(no = paste0("op", 1:n())) %>%
   ungroup() %>%
@@ -85,7 +85,7 @@ svopt <- svop %>%
 
 ovopt <- ovop %>%
   mutate(INDATUM = ymd(datum_c)) %>%
-  select(-datum_c, datum) %>%
+  select(-datum_c, -datum) %>%
   group_by(LopNr, INDATUM) %>%
   mutate(no = paste0("op", 1:n())) %>%
   ungroup() %>%
@@ -96,7 +96,7 @@ ovopt <- ovop %>%
 
 ovt <- ov %>%
   mutate(INDATUM = ymd(bdat_c)) %>%
-  select(-bdat_c, bdat) %>%
+  select(-bdat_c, -bdat) %>%
   group_by(LopNr, INDATUM, diag_no) %>%
   mutate(no = 1:n()) %>%
   ungroup() %>%
@@ -109,7 +109,7 @@ ovt <- ov %>%
 
 pct <- pc %>%
   mutate(INDATUM = ymd(bdat_c)) %>%
-  select(-bdat_c, bdat) %>%
+  select(-bdat_c, -bdat) %>%
   group_by(LopNr, INDATUM, diag_no) %>%
   mutate(no = 1:n()) %>%
   ungroup() %>%

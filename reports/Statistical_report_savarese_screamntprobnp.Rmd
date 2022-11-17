@@ -1,6 +1,5 @@
 ---
 title: 'Statistical report: N-terminal pro-B-type natriuretic peptide (NT-proBNP) in patients with heart failure, with a focus on worsening heart failure, in Sweden'
-subtitle: 'DRAFT'
 author: 'Statistician: Lina Benson'
   
 date: "`r Sys.Date()`"
@@ -18,7 +17,6 @@ urlcolor: blue
 linkcolor: black
 header-includes:
    - \usepackage{subfig}
-   - \usepackage{draftwatermark}
    - \usepackage{pdflscape}
    - \newcommand{\blandscape}{\begin{landscape}}
    - \newcommand{\elandscape}{\end{landscape}}
@@ -112,8 +110,6 @@ Missing data was imputed with multiple imputation (n = 20) using mice [@mice].
 Variables included in the model are indicated in 
 Table \ref{tab:tab1}. 
 
-Note that there are modifications to selection of variables in model to what is stated in the protocol. 
-
 ## Baseline characteristics
 
 ```{r, child = "./src/tab1.Rmd"}
@@ -126,7 +122,7 @@ Note that there are modifications to selection of variables in model to what is 
 
 ### Trend of NT-proBNP testing after the index date
 
-Patients are included in the denominator if their index date is prior to 1 Jan of the respective year and are alive and at risk on 31 Dec of the respective year (could have 1 July as date instead and gain more pats and also include "intial testing phase", however, if there is an initial testing phase will prob be biased so more testing in earlier years due to cumulate inclusion (still maybe biased). Only NT-proBNP testing AFTER index is considered. 
+Patients are included in the denominator if their index date is prior to 1 Jan of the respective year and are alive and at risk on 31 Dec of the respective year. Only NT-proBNP testing AFTER index is considered. 
 
 ```{r, child = "./src/trend_nt.Rmd"}
 
@@ -182,11 +178,14 @@ Only patients with complete follow-up during the specified time period are inclu
 
 ```
 
+\clearpage
+
 ### Pattern of change 
 
 Note that a cut-off of 3000 is used instead of 5000 (so stable low is defined as <3000). 
 
-The 6 mo pre and post index are restricted to be within 6 months +/- 3 mo. The labvalues closest 6 months are selected. 
+The 6 mo pre and post index are restricted to be within 6 months +/- 3 mo. The labvalues closest to 
+6 months are selected. 
 
 Note that there is no restriction that the patient needs to be alive at 6 months (since they need value at least 3 mo after index this is however indirectly applied).
 
@@ -228,7 +227,7 @@ Data were censored at 2018-12-31 or death/move from Stockholm county. Follow-up 
 
 Time to first events were presented with Kaplan-Meier curves and Cox proportional hazards regressions were 
 used to model the time to first event, partly crude including only change in NT-proBNP in the model 
-and partly adjusted for 1) the index NT-proBNP value 2) the 6 mo NT-proBNP value,
+and partly adjusted for 1) the index NT-proBNP value 2) the 6 mo NT-proBNP value. 
 
 ```{r, child = "./src/km.Rmd"}
 
