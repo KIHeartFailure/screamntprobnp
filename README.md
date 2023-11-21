@@ -1,4 +1,4 @@
-# R code for the project N-terminal pro-B-type natriuretic peptide (NT-proBNP) in patients with heart failure, with a focus on worsening heart failure, in Sweden
+# R code for the project N-terminal pro-B-type natriuretic peptide concentrations, trends in testing and associations with worsening heart failure events
 
 The aim of this R code is to be transparent and document the data handling 
 and statistical analyses performed for the project.
@@ -31,4 +31,4 @@ reports/Statistical_report_XX.Rmd
 
 ## Publication
 
-... 
+DOI: 10.1002/ehf2.14613 
